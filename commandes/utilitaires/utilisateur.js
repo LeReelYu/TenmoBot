@@ -1,15 +1,51 @@
-const { SlashCommandBuilder } = require("discord.js");
+const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("infoutilisateur")
-    .setDescription("Te donne des informations sur le membre désigné"),
+    .setDescription("Affiche les informations d'un membre.")
+    .addUserOption((option) =>
+      option
+        .setName("membre")
+        .setDescription("Le membre dont vous voulez voir les informations.")
+        .setRequired(true)
+    ),
+
   async execute(interaction) {
-    // interaction.user c'est celui qui a lancé la commande
-    // interaction.member c'est le membre dans le serveur en particulier
-    // donc interaction.member.joinedAt c'est la date à laquelle le membre a rejoint 1 serveur en particulier
-    await interaction.reply(
-      `La commande a été lancée par ${interaction.user.username}, qui a rejoint le ${interaction.member.joinedAt}`
-    );
+    // Récupérer l'utilisateur mentionné
+    const membre = interaction.options.getMember("membre");
+
+    // Vérification que le membre est bien présent dans le serveur
+    if (!membre) {
+      return interaction.reply({
+        content: "Je n'ai pas pu trouver ce membre sur le serveur.",
+        ephemeral: true,
+      });
+    }
+
+    // Récupérer la date de création du compte et d'arrivée sur le serveur
+    const creationDate = `<t:${Math.floor(
+      membre.user.createdTimestamp / 1000
+    )}:F>`;
+    const joinDate = `<t:${Math.floor(membre.joinedTimestamp / 1000)}:F>`;
+
+    // Construire l'embed
+    const embed = new EmbedBuilder()
+      .setColor("Random")
+      .setTitle(`📋 Informations sur ${membre.user.tag}`)
+      .setThumbnail(membre.user.displayAvatarURL({ dynamic: true, size: 1024 }))
+      .addFields(
+        { name: "🆔 Identifiant", value: membre.user.id, inline: true },
+        { name: "📅 Compte créé le", value: creationDate, inline: true },
+        { name: "🚪 Arrivée sur le serveur le", value: joinDate, inline: true }
+      )
+      .setFooter({
+        text: `Demandé par ${interaction.user.tag}`,
+        iconURL: interaction.user.displayAvatarURL({ dynamic: true }),
+      })
+      .setTimestamp();
+
+    // Envoyer la réponse
+    return interaction.reply({ embeds: [embed] });
   },
 };
