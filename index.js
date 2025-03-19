@@ -2,7 +2,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { Client, Collection, GatewayIntentBits } = require("discord.js");
 const { token } = require("./config.json");
-const autofeur = require("./autofeur"); // Si autofeur.js est dans le même dossier que index.js
+const autofeur = require("./autoscript/autofeur"); // Si autofeur.js est dans le même dossier que index.js
 
 const client = new Client({
   intents: [
