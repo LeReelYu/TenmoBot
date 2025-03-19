@@ -51,14 +51,14 @@ const rest = new REST().setToken(token);
 // Commandes dans le serveur
 /*rest
   .delete(
-    Routes.applicationGuildCommand(clientId, guildId, "1351942929542811668")
+    Routes.applicationGuildCommand(clientId, guildId, "1351979373229506632")
   )
-  .then(() => console.log("Successfully deleted guild command"))
+  .then(() => console.log("Pouf plus de commande sur le serveur"))
   .catch(console.error);
 
 // Commandes globales
 rest
-  .delete(Routes.applicationCommand(clientId, "1351942929542811668"))
-  .then(() => console.log("Successfully deleted application command"))
+  .delete(Routes.applicationCommand(clientId, "1351979373229506632"))
+  .then(() => console.log("Pouf plus de commande tout court"))
   .catch(console.error);*/
 // node deploy-commands.js pour lancer l'action, retirer le /* et */ pour réactiver le système de suppression
