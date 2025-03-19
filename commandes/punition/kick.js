@@ -28,7 +28,7 @@ module.exports = {
       return interaction.reply({
         content:
           "Vous devez avoir la permission de kick des membres pour utiliser cette commande.",
-        flags: MessageFlags.FLAGS.EPHEMERAL, // Correction ici : utiliser MessageFlags.FLAGS.EPHEMERAL
+        flags: MessageFlags.Ephemeral,
       });
     }
 
@@ -40,7 +40,7 @@ module.exports = {
     if (!target) {
       return interaction.reply({
         content: "Utilisateur non trouvé.",
-        flags: MessageFlags.FLAGS.EPHEMERAL, // Correction ici : utiliser MessageFlags.FLAGS.EPHEMERAL
+        flags: MessageFlags.Ephemeral,
       });
     }
 
@@ -48,7 +48,7 @@ module.exports = {
     if (target.id === interaction.user.id) {
       return interaction.reply({
         content: "Vous ne pouvez pas vous kicker vous-même.",
-        flags: MessageFlags.FLAGS.EPHEMERAL, // Correction ici : utiliser MessageFlags.FLAGS.EPHEMERAL
+        flags: MessageFlags.Ephemeral,
       });
     }
 
@@ -59,7 +59,7 @@ module.exports = {
       return interaction.reply({
         content:
           "Vous ne pouvez pas kick cette personne car elle a un rôle plus élevé.",
-        flags: MessageFlags.FLAGS.EPHEMERAL, // Correction ici : utiliser MessageFlags.FLAGS.EPHEMERAL
+        flags: MessageFlags.Ephemeral,
       });
     }
 
@@ -68,13 +68,13 @@ module.exports = {
       await target.kick(reason);
       return interaction.reply({
         content: `${target.user.tag} a été kické pour la raison suivante : ${reason}`,
-        flags: MessageFlags.FLAGS.EPHEMERAL, // Correction ici : utiliser MessageFlags.FLAGS.EPHEMERAL
+        flags: MessageFlags.Ephemeral,
       });
     } catch (error) {
       console.error(error);
       return interaction.reply({
         content: "Une erreur est survenue en tentant de kick cet utilisateur.",
-        flags: MessageFlags.FLAGS.EPHEMERAL, // Correction ici : utiliser MessageFlags.FLAGS.EPHEMERAL
+        flags: MessageFlags.Ephemeral,
       });
     }
   },
