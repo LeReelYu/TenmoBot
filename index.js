@@ -4,6 +4,7 @@ const { Client, Collection, GatewayIntentBits } = require("discord.js");
 const { token } = require("./config.json");
 const autofeur = require("./autoscript/autofeur"); // Si autofeur.js est dans le même dossier que index.js
 const bjorn = require("./autoscript/bjorn");
+const sequelize = require("./Sequilize/sequelize"); // Importation de la connexion Sequelize
 
 const client = new Client({
   intents: [
@@ -50,11 +51,15 @@ for (const file of eventFiles) {
   }
 }
 
-// La ligne suivante assure que tu n'as qu'un seul lancement
+// Jsp pk y'a deux fois tenbmo bot est prêt...
 client.once("ready", () => {
   console.log(`Capitaine ${client.user.tag} au rapport !`);
   autofeur(client); // Appel de la fonction autofeur
   bjorn(client); // Appel de la fonction björn
+  sequelize.sync().then(() => {
+    // Appel de la base de donnée avec le bot
+    console.log("📦 Base de données synchronisée !");
+  });
 });
 
 client.login(token); // On laisse juste client.login ici, il se déclenche automatiquement
