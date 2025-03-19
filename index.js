@@ -3,6 +3,7 @@ const path = require("node:path");
 const { Client, Collection, GatewayIntentBits } = require("discord.js");
 const { token } = require("./config.json");
 const autofeur = require("./autoscript/autofeur"); // Si autofeur.js est dans le même dossier que index.js
+const bjorn = require("./autoscript/bjorn");
 
 const client = new Client({
   intents: [
@@ -49,6 +50,11 @@ for (const file of eventFiles) {
   }
 }
 
-autofeur(client);
+// La ligne suivante assure que tu n'as qu'un seul lancement
+client.once("ready", () => {
+  console.log(`Capitaine ${client.user.tag} au rapport !`);
+  autofeur(client); // Appel de la fonction autofeur
+  bjorn(client); // Appel de la fonction björn
+});
 
-client.login(token);
+client.login(token); // On laisse juste client.login ici, il se déclenche automatiquement

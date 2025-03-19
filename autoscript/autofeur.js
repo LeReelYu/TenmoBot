@@ -1,5 +1,3 @@
-// autofeur.js
-
 module.exports = (client) => {
   client.on("messageCreate", (message) => {
     if (message.author.bot) return; // Ignore les messages des bots
