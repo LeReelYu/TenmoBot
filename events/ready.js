@@ -1,7 +1,7 @@
 const { Events, ActivityType } = require("discord.js");
 const autofeur = require("../autoscript/autofeur");
 const bjorn = require("../autoscript/bjorn");
-const sequelize = require("../Sequilize/sequelize");
+const sequelize = require("../Sequelize/sequelize");
 
 module.exports = {
   name: Events.ClientReady,
@@ -19,7 +19,7 @@ module.exports = {
     // 🎮 Définition de la Rich Presence dynamique (changement toutes les 30 minutes)
     const statuses = [
       { name: "son nombre de champignons posés", type: ActivityType.Watching },
-      { name: "à placer plus de champignons", type: ActivityType.Playing },
+      { name: "placer plus de champignons", type: ActivityType.Playing },
       { name: "les sons des pleurs des faibles", type: ActivityType.Listening },
     ];
 
@@ -27,7 +27,7 @@ module.exports = {
     const updatePresence = () => {
       const status = statuses[i % statuses.length];
       client.user.setPresence({ activities: [status], status: "online" });
-      console.log(`🎮 Nouveau statut : ${status.name}`);
+      /*console.log(`🎮 Nouveau statut : ${status.name}`);*/ // Remettre si je veux notifier le changement de statut.
       i++;
     };
 
