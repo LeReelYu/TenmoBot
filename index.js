@@ -4,7 +4,7 @@ const { Client, Collection, GatewayIntentBits } = require("discord.js");
 const { token } = require("./config.json");
 const autofeur = require("./autoscript/autofeur"); // Si autofeur.js est dans le même dossier que index.js
 const bjorn = require("./autoscript/bjorn");
-const sequelize = require("./Sequilize/sequelize"); // Importation de la connexion Sequelize
+const sequelize = require("./Sequelize/sequelize"); // Importation de la connexion Sequelize
 
 const client = new Client({
   intents: [
