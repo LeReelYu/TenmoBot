@@ -7,7 +7,7 @@ module.exports = {
     .setDescription("Que Tenmo apprenne quelque chose")
     .addSubcommand((subcommand) =>
       subcommand
-        .setName("add")
+        .setName("ajout")
         .setDescription("Ajoute un nouveau tag.")
         .addStringOption((option) =>
           option.setName("nom").setDescription("Nom du tag").setRequired(true)
@@ -28,10 +28,10 @@ module.exports = {
         description: description,
         username: interaction.user.tag,
       });
-      await interaction.reply(`✅ Tag **${name}** ajouté avec succès !`);
+      await interaction.reply(`✅ Souvenir **${name}** ajouté avec succès !`);
     } catch (error) {
       if (error.name === "SequelizeUniqueConstraintError") {
-        await interaction.reply("❌ Ce tag existe déjà !");
+        await interaction.reply("❌ Ce souvenir existe déjà !");
       } else {
         console.error(error);
         await interaction.reply("❌ Une erreur est survenue.");

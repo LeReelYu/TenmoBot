@@ -7,10 +7,13 @@ module.exports = {
     .setDescription("Que Tenmo se rappelle de quelque chose")
     .addSubcommand((subcommand) =>
       subcommand
-        .setName("get")
+        .setName("mémoire")
         .setDescription("Affiche un tag enregistré.")
         .addStringOption((option) =>
-          option.setName("nom").setDescription("Nom du tag").setRequired(true)
+          option
+            .setName("nom")
+            .setDescription("Nom du souvenir")
+            .setRequired(true)
         )
     ),
   async execute(interaction) {
@@ -20,7 +23,7 @@ module.exports = {
     if (tag) {
       await interaction.reply(`📌 **${name}**: ${tag.description}`);
     } else {
-      await interaction.reply("❌ Ce tag n'existe pas !");
+      await interaction.reply("❌ Tenmo ne se souvient pas de ça!");
     }
   },
 };

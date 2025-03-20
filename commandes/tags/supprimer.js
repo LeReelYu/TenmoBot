@@ -7,10 +7,13 @@ module.exports = {
     .setDescription("Faire oublier quelque chose à Tenmo")
     .addSubcommand((subcommand) =>
       subcommand
-        .setName("remove")
-        .setDescription("Supprime un tag existant.")
+        .setName("supprimer")
+        .setDescription("Supprime un souvenir existant.")
         .addStringOption((option) =>
-          option.setName("nom").setDescription("Nom du tag").setRequired(true)
+          option
+            .setName("nom")
+            .setDescription("Nom du souvenir")
+            .setRequired(true)
         )
     ),
   async execute(interaction) {
@@ -18,9 +21,9 @@ module.exports = {
     const rowCount = await Tags.destroy({ where: { name } });
 
     if (!rowCount) {
-      return interaction.reply("❌ Ce tag n'existe pas !");
+      return interaction.reply("❌ Tenmo ne sait pas ça !");
     }
 
-    return interaction.reply(`🗑️ Tag **${name}** supprimé.`);
+    return interaction.reply(`🗑️ Souvenir **${name}** oublié.`);
   },
 };
