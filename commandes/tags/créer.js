@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require("discord.js");
-const Tags = require("../../Sequilize/modèles/tags");
+const Tags = require("../../Sequelize/modèles/tags");
 
 module.exports = {
   data: new SlashCommandBuilder()
