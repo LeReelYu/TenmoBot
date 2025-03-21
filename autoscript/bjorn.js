@@ -33,7 +33,13 @@ module.exports = async function bjorn(client) {
       console.error("Salon introuvable !");
       return;
     }
+
+    let lastSentTime = null;
+    let isPaused = false;
+
     setInterval(async () => {
+      if (isPaused) return; // Si le bot est en pause, il ne vérifie pas l'heure
+
       const now = new Date();
       const currentTime = now.toLocaleTimeString("fr-FR", {
         hour: "2-digit",
@@ -41,16 +47,27 @@ module.exports = async function bjorn(client) {
         hour12: false,
       });
 
-      if (nezTimes.includes(currentTime)) {
+      // Vérifie si l'heure actuelle est dans la liste et si le message n'a pas déjà été envoyé pour cette minute
+      if (nezTimes.includes(currentTime) && lastSentTime !== currentTime) {
         try {
           await channel.send("nez");
-          console.log(`Message "nez" envoyé à ${currentTime}`);
+          console.log(`✅ Message "nez" envoyé à ${currentTime}`);
+          lastSentTime = currentTime; // Empêche les envois multiples dans la même minute
+
+          isPaused = true; // Met le bot en pause
+          console.log("⏸️ Pause activée pour 30 minutes...");
+
+          // Attendre 30 minutes (30 * 60 * 1000 ms) avant de reprendre la vérification
+          setTimeout(() => {
+            isPaused = false;
+            console.log("▶️ Pause terminée, reprise de la vérification.");
+          }, 30 * 60 * 1000);
         } catch (error) {
-          console.error("Erreur lors de l'envoi du message:", error);
+          console.error("❌ Erreur lors de l'envoi du message :", error);
         }
       }
-    }, 60 * 1000); // Vérifie toutes les minutes
+    }, 1000); // Vérifie chaque seconde
   } catch (error) {
-    console.error("Erreur lors de la récupération du salon :", error);
+    console.error("❌ Erreur lors de la récupération du salon :", error);
   }
 };
