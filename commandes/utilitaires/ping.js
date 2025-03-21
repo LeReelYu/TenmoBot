@@ -15,14 +15,14 @@ module.exports = {
     ) {
       return interaction.reply({
         content: "Tu n'as pas la permission de faire ça.",
-        ephemeral: true, // Message éphémère
+        flags: MessageFlags.Ephemeral,
       });
     }
 
     // Si toutes les vérifications sont passées, on envoie la réponse
     await interaction.reply({
       content: "Pong!",
-      ephemeral: true, // Message éphémère
+      flags: MessageFlags.Ephemeral,
     });
   },
 };
