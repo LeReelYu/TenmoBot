@@ -35,23 +35,6 @@ module.exports = {
     updatePresence();
     setInterval(updatePresence, 300000); // 30 minutes = 1800000 ms
 
-    // 🚀 Démarrage d'Ollama
-    /*console.log("🚀 Démarrage d'Ollama...");
-
-    const ollamaProcess = exec("ollama serve", (error, stdout, stderr) => {
-      if (error) {
-        console.error(`❌ Erreur Ollama: ${error.message}`);
-        return;
-      }
-
-      if (stderr) {
-        console.warn(`⚠️ Ollama: ${stderr}`);
-        return;
-      }
-
-      console.log(`✅ Ollama démarré avec succès.\n${stdout}`);
-    });*/
-
     console.log("🎮 Rich Presence activée !");
   },
 };

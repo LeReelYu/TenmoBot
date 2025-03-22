@@ -5,7 +5,6 @@ const { token } = require("./config.json");
 const autofeur = require("./autoscript/autofeur"); // Si autofeur.js est dans le même dossier que index.js
 const bjorn = require("./autoscript/bjorn");
 const sequelize = require("./Sequelize/sequelize"); // Importation de la connexion Sequelize
-const handleMessage = require("./autoscript/ollama");
 
 const client = new Client({
   intents: [
