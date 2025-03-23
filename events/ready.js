@@ -21,7 +21,7 @@ module.exports = {
     const statuses = [
       { name: "son nombre de champignons posés", type: ActivityType.Watching },
       { name: "placer plus de champignons", type: ActivityType.Playing },
-      { name: "les sons des pleurs des faibles", type: ActivityType.Listening },
+      { name: "les pleurs des faibles", type: ActivityType.Listening },
     ];
 
     let i = 0;

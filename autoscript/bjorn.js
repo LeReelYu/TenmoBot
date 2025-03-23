@@ -27,13 +27,13 @@ module.exports = async function bjorn(client) {
           lastSentTime = currentTime; // Évite les doublons
 
           isPaused = true; // Active la pause
-          console.log("⏸️ Pause nez activée pour 58 minutes...");
+          console.log("⏸️ Pause nez activée");
 
           // Attendre 58 minutes avant de reprendre la vérification
           setTimeout(() => {
             isPaused = false;
-            console.log("▶️ Pause terminée, reprise de la vérification.");
-          }, 3480000);
+            console.log("▶️ Pause nez terminée");
+          }, 1200000);
         } catch (error) {
           console.error("❌ Erreur lors de l'envoi du message :", error);
         }
