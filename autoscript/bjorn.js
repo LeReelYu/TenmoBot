@@ -12,33 +12,33 @@ module.exports = async function bjorn(client) {
     let isPaused = false;
 
     setInterval(async () => {
-      if (isPaused) return; // Si en pause, ne vérifie pas l'heure
+      if (isPaused) return; // Bloque l'exécution si en pause
 
       const now = new Date();
       const hours = now.getHours().toString().padStart(2, "0");
       const minutes = now.getMinutes().toString().padStart(2, "0");
       const currentTime = `${hours}:${minutes}`;
 
-      // Vérifie si l'heure et les minutes sont identiques (ex: 13:13) et si le message n'a pas déjà été envoyé
+      // Vérifie si l'heure et les minutes sont identiques (ex: 13:13)
       if (hours === minutes && lastSentTime !== currentTime) {
         try {
           await channel.send("nez");
           console.log(`✅ Message "nez" envoyé à ${currentTime}`);
-          lastSentTime = currentTime; // Évite les doublons
+          lastSentTime = currentTime; // Empêche les doublons pour cette heure
 
           isPaused = true; // Active la pause
-          console.log("⏸️ Pause nez activée");
+          console.log("⏸️ Pause de 20 minutes activée");
 
-          // Attendre 58 minutes avant de reprendre la vérification
+          // Attendre 20 minutes avant de permettre un nouvel envoi
           setTimeout(() => {
             isPaused = false;
-            console.log("▶️ Pause nez terminée");
-          }, 1200000);
+            console.log("▶️ Pause terminée, reprise des vérifications.");
+          }, 20 * 60 * 1000); // 20 minutes en millisecondes
         } catch (error) {
           console.error("❌ Erreur lors de l'envoi du message :", error);
         }
       }
-    }, 400); // Vérifie chaque milliseconde enfin bref tu comprends
+    }, 3000); // Vérifie toutes les 3 secondes pour optimiser les performances
   } catch (error) {
     console.error("❌ Erreur lors de la récupération du salon :", error);
   }

@@ -1,5 +1,12 @@
-const { SlashCommandBuilder, PermissionFlagsBits } = require("discord.js");
+const {
+  SlashCommandBuilder,
+  PermissionFlagsBits,
+  MessageFlags,
+} = require("discord.js");
 const RusseGlobal = require("../../Sequelize/modèles/russeglobal"); // Importation du modèle global
+
+// Variable pour gérer le cooldown global
+let isCooldownActive = false;
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -11,6 +18,18 @@ module.exports = {
     const user = interaction.member;
     const username = user.displayName;
 
+    // Vérifier si le cooldown global est actif
+    if (isCooldownActive) {
+      return interaction.reply({
+        content:
+          "⏳ La roulette est en cours ! Attendez la fin avant de rejouer.",
+        flags: MessageFlags.Ephemeral,
+      });
+    }
+
+    // Activer le cooldown global
+    isCooldownActive = true;
+
     // Récupérer l'état du chargeur global
     let game = await RusseGlobal.findOne({ where: {} });
 
@@ -19,20 +38,20 @@ module.exports = {
       game = await RusseGlobal.create({ remainingShots: 6 });
     }
 
-    // Définir un nombre aléatoire de balles perdantes (par exemple 1 à 3 balles perdantes)
-    const maxLostBalls = 3; // Maximum de balles perdantes
-    const lostBallsCount = Math.floor(Math.random() * maxLostBalls) + 1; // Nombre de balles perdantes (1 à maxLostBalls)
+    // Définir un nombre aléatoire de balles perdantes (par exemple 1 à 3 balles perdues)
+    const maxLostBalls = 3;
+    const lostBallsCount = Math.floor(Math.random() * maxLostBalls) + 1;
 
-    // Crée un tableau qui contient `lostBallsCount` balles perdantes
-    const balls = Array(game.remainingShots).fill("safe"); // Par défaut, toutes les balles sont sûres
+    // Créer un tableau avec des balles sûres et perdues
+    const balls = Array(game.remainingShots).fill("safe");
     for (let i = 0; i < lostBallsCount; i++) {
-      const randomIndex = Math.floor(Math.random() * game.remainingShots); // Choisir une balle au hasard pour être perdante
-      balls[randomIndex] = "lost"; // Marquer cette balle comme perdante
+      const randomIndex = Math.floor(Math.random() * game.remainingShots);
+      balls[randomIndex] = "lost";
     }
 
     // Annonce du début du jeu
     await interaction.reply(
-      `🔫 **${username} tente sa chance à la roulette de Bandle édition familiale...** 🎰`
+      `🔫 **${username} tente sa chance à la roulette globale...** 🎰`
     );
 
     // Attente de 10 secondes
@@ -41,31 +60,30 @@ module.exports = {
     // Décrémentation des balles du chargeur global
     game.remainingShots--;
 
-    // Tirer une balle (vérifier si c'est une balle perdante)
+    // Tirer une balle (vérifier si elle est perdante)
     const rollResult = balls[game.remainingShots];
 
     if (rollResult === "lost") {
-      // Vérifie si le bot a la permission de mute
       if (
         !interaction.guild.members.me.permissions.has(
           PermissionFlagsBits.ModerateMembers
         )
       ) {
+        isCooldownActive = false;
         return interaction.followUp({
           content: "❌ Je n'ai pas la permission de mute les membres !",
           ephemeral: true,
         });
       }
 
-      // Vérifie si l'utilisateur peut être mute
       if (!user.moderatable) {
+        isCooldownActive = false;
         return interaction.followUp(
-          `🎲 **${username} aurait perdu...** mais je vois que tu as pris tes précautions !`
+          `🎲 **${username} aurait perdu...** mais il a pris ses précautions !`
         );
       }
 
       try {
-        // Mute l'utilisateur pendant 60 secondes
         await user.timeout(60 * 1000, "Perdu à la roulette de Bandle !");
         await interaction.followUp(
           `🎲 **Oh non ${username}... C'était une vraie balle... !**`
@@ -95,5 +113,8 @@ module.exports = {
         `🔄 Le chargeur est vide ! Je vais le recharger avec tout ce que j'ai !`
       );
     }
+
+    // Désactiver le cooldown global après la fin du jeu
+    isCooldownActive = false;
   },
 };
