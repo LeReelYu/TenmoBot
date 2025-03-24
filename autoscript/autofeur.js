@@ -1,6 +1,14 @@
 module.exports = (client) => {
+  // Liste des utilisateurs exclus par leurs ID (remplace les IDs par ceux des utilisateurs à exclure)
+  const excludedUsers = ["310144070016303104", "260419988563689472"]; // Remplacer par les vrais IDs des utilisateurs à exclure
+
   client.on("messageCreate", (message) => {
     if (message.author.bot) return; // Ignore les messages des bots
+
+    // Vérifie si l'utilisateur est dans la liste des exclus
+    if (excludedUsers.includes(message.author.id)) {
+      return; // Ignore le message si l'utilisateur est dans la liste des exclus
+    }
 
     // Vérifie si le message contient un des mots-clés
     if (
@@ -56,7 +64,9 @@ module.exports = (client) => {
       message.content.toLowerCase().includes("𝗞𝗼𝗶☁️") ||
       message.content.toLowerCase().includes("𝕼𝖚𝖔𝖎🖤") ||
       message.content.toLowerCase().includes("𝓚𝓸𝓪") ||
-      message.content.toLowerCase().includes("𝗾𝘂𝗼𝗶")
+      message.content.toLowerCase().includes("𝗾𝘂𝗼𝗶") ||
+      message.content.toLowerCase().includes("what") ||
+      message.content.toLowerCase().includes("q.ooi")
     ) {
       message.reply("feur");
     }
