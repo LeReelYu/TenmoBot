@@ -3,6 +3,7 @@ const { exec } = require("child_process");
 const autofeur = require("../autoscript/autofeur");
 const bjorn = require("../autoscript/bjorn");
 const sequelize = require("../Sequelize/sequelize");
+const fotd = require("../autoscript/fotd");
 
 module.exports = {
   name: Events.ClientReady,
@@ -12,6 +13,7 @@ module.exports = {
 
     autofeur(client); // Lancement du script autofeur
     bjorn(client); // Lancement du script bjorn
+    fotd(client);
 
     sequelize.sync().then(() => {
       console.log("📦 Base de données synchronisée !");
