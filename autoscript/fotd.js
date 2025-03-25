@@ -54,11 +54,11 @@ async function sendFactOfTheDay(client) {
 }
 
 module.exports = (client) => {
-  console.log("💌 Planification du message quotidien activée.");
+  console.log("💌 Planification du message quotidien activée !");
 
   setInterval(async () => {
     const now = new Date();
-    if (now.getHours() === 12 && now.getMinutes() === 30) {
+    if (now.getHours() === 8 && now.getMinutes() === 25) {
       await sendFactOfTheDay(client);
     }
   }, 60 * 1000);
