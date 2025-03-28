@@ -4,6 +4,8 @@ const autofeur = require("../autoscript/autofeur");
 const bjorn = require("../autoscript/bjorn");
 const sequelize = require("../Sequelize/sequelize");
 const fotd = require("../autoscript/fotd");
+const tenmoai = require("../iatenmo/tenmoai");
+const tenmohoroscope = require("../iatenmo/horoscope");
 
 module.exports = {
   name: Events.ClientReady,
@@ -14,6 +16,8 @@ module.exports = {
     autofeur(client); // Lancement du script autofeur
     bjorn(client); // Lancement du script bjorn
     fotd(client);
+    tenmoai(client);
+    tenmohoroscope(client);
 
     sequelize.sync().then(() => {
       console.log("📦 Base de données synchronisée !");
