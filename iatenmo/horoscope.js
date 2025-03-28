@@ -100,7 +100,7 @@ module.exports = async function tenmohoroscope(client) {
       const currentTime = `${hours}:${minutes}`;
 
       // Vérifie si l'heure est 12:00 (ou toute autre heure de votre choix)
-      if (hours === "12" && minutes === "01" && lastSentTime !== currentTime) {
+      if (hours === "11" && minutes === "51" && lastSentTime !== currentTime) {
         try {
           // Vérifie que le channel est de type textuel
           if (channel.type === "text" || channel.isTextBased()) {

@@ -1,6 +1,10 @@
 module.exports = (client) => {
   // Liste des utilisateurs qui recevront forcément "feur"
-  const guaranteedUsers = ["411559407349137413", "265130061210845184"]; // Remplace par les IDs
+  const guaranteedUsers = [
+    "411559407349137413",
+    "265130061210845184",
+    "314393398150955008",
+  ]; // Remplace par les IDs
 
   // Liste des mots-clés déclencheurs
   const triggerWords = [
