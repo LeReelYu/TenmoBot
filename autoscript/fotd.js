@@ -74,7 +74,7 @@ module.exports = (client) => {
     if (now.getHours() === 13 && now.getMinutes() === 15 && !hasSentFactToday) {
       await sendFactOfTheDay(client);
     }
-  }, 60 * 1000);
+  }, 30 * 1000);
 
   // Réinitialisation quotidienne à minuit
   setInterval(() => {
