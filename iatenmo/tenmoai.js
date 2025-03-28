@@ -16,6 +16,9 @@ const TEMPERATURE = 0.7; // Valeur par défaut pour la température, tu peux la 
 // Chance de réponse de Teemo (1 = 100%, 0.1 = 10%, etc.)
 const RESPONSE_CHANCE = 0.1; // 10% de chance que Teemo réponde à un message d'utilisateur
 
+// ID du salon autorisé pour l'interaction de Teemo (remplace par l'ID de ton salon)
+const allowedChannelId = "1332366656428572693";
+
 // Fonction pour générer une réponse avec OpenAI, comme le capitaine Teemo
 async function getTeemoResponse(messageContent, serverId, channelId) {
   // Récupérer les derniers messages du salon depuis la base de données
@@ -88,6 +91,9 @@ module.exports = async function tenmoai(client) {
   // Écoute des messages pour déclencher la réponse de Teemo uniquement s'il est activé
   client.on("messageCreate", async (message) => {
     if (message.author.bot) return; // Ignore les messages des autres bots
+
+    // Vérifie que le message provient du salon autorisé
+    if (message.channel.id !== allowedChannelId) return; // Si ce n'est pas le salon autorisé, Teemo n'interagit pas
 
     // Si le mot de passe est mentionné, activer/désactiver Teemo
     await toggleTeemoActivation(message);
