@@ -10,18 +10,18 @@ async function saveMessage(serverId, username, role, content, channelId) {
 
   await Memory.create({ server_id: serverId, username, role, content });
 
-  // Limite la mémoire à 350 messages par serveur
+  // Limite la mémoire à 200 messages par serveur
   const messages = await Memory.findAll({
     where: { server_id: serverId },
     order: [["createdAt", "DESC"]],
   });
 
-  if (messages.length > 350) {
+  if (messages.length > 200) {
     await messages[messages.length - 1].destroy(); // Supprime l'ancien message
   }
 }
 
-// Récupère les 350 derniers messages d'un serveur (uniquement si dans le bon salon)
+// Récupère les 100 derniers messages d'un serveur (uniquement si dans le bon salon)
 async function getChatMemory(serverId, channelId) {
   // Ignore les requêtes venant de salons non autorisés
   if (channelId !== ALLOWED_CHANNEL_ID) return [];
@@ -29,7 +29,7 @@ async function getChatMemory(serverId, channelId) {
   const messages = await Memory.findAll({
     where: { server_id: serverId },
     order: [["createdAt", "DESC"]],
-    limit: 350,
+    limit: 100,
   });
 
   return messages.map((msg) => ({
