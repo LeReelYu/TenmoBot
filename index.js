@@ -7,6 +7,7 @@ const bjorn = require("./autoscript/bjorn");
 const sequelize = require("./Sequelize/sequelize"); // Importation de la connexion Sequelize
 const tenmoai = require("./iatenmo/tenmoai");
 const { saveMessage } = require("./Sequelize/modèles/ia/cerveauteemo"); // Assure-toi que saveMessage est importé
+const autochannel = require("./autoscript/autochannel");
 
 const client = new Client({
   intents: [

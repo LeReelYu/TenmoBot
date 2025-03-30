@@ -6,6 +6,7 @@ const sequelize = require("../Sequelize/sequelize");
 const fotd = require("../autoscript/fotd");
 const tenmoai = require("../iatenmo/tenmoai");
 const tenmohoroscope = require("../iatenmo/horoscope");
+const autochannel = require("../autoscript/autochannel");
 
 module.exports = {
   name: Events.ClientReady,
@@ -18,6 +19,7 @@ module.exports = {
     fotd(client);
     tenmoai(client);
     tenmohoroscope(client);
+    autochannel(client);
 
     sequelize.sync().then(() => {
       console.log("📦 Base de données synchronisée !");
