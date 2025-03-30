@@ -12,33 +12,32 @@ module.exports = async function bjorn(client) {
     let isPaused = false;
 
     setInterval(async () => {
-      if (isPaused) return; // Bloque l'exécution si en pause
+      if (isPaused) return;
 
       const now = new Date();
       const hours = now.getHours().toString().padStart(2, "0");
       const minutes = now.getMinutes().toString().padStart(2, "0");
+      const seconds = now.getSeconds();
       const currentTime = `${hours}:${minutes}`;
 
-      // Vérifie si l'heure et les minutes sont identiques (ex: 13:13)
-      if (hours === minutes && lastSentTime !== currentTime) {
+      if (hours === minutes && seconds === 0 && lastSentTime !== currentTime) {
         try {
           await channel.send("nez");
           console.log(`✅ Message "nez" envoyé à ${currentTime}`);
-          lastSentTime = currentTime; // Empêche les doublons pour cette heure
+          lastSentTime = currentTime;
 
-          isPaused = true; // Active la pause
+          isPaused = true;
           console.log("⏸️ Pause de 20 minutes activée");
 
-          // Attendre 20 minutes avant de permettre un nouvel envoi
           setTimeout(() => {
             isPaused = false;
             console.log("▶️ Pause terminée, reprise des vérifications.");
-          }, 20 * 60 * 1000); // 20 minutes en millisecondes
+          }, 20 * 60 * 1000);
         } catch (error) {
           console.error("❌ Erreur lors de l'envoi du message :", error);
         }
       }
-    }, 3000); // Vérifie toutes les 3 secondes pour optimiser les performances
+    }, 30 * 1000); // Vérification chaque seconde
   } catch (error) {
     console.error("❌ Erreur lors de la récupération du salon :", error);
   }

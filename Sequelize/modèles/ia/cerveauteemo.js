@@ -16,7 +16,7 @@ async function saveMessage(serverId, username, role, content, channelId) {
     order: [["createdAt", "DESC"]],
   });
 
-  if (messages.length > 200) {
+  if (messages.length > 100) {
     await messages[messages.length - 1].destroy(); // Supprime l'ancien message
   }
 }
@@ -29,7 +29,7 @@ async function getChatMemory(serverId, channelId) {
   const messages = await Memory.findAll({
     where: { server_id: serverId },
     order: [["createdAt", "DESC"]],
-    limit: 100,
+    limit: 50,
   });
 
   return messages.map((msg) => ({

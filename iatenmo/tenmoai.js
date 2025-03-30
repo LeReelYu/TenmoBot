@@ -14,7 +14,7 @@ const password = "debout!"; // Le mot de passe qui active/désactive Teemo
 const TEMPERATURE = 0.7; // Valeur par défaut pour la température, tu peux la modifier ici
 
 // Chance de réponse de Teemo (1 = 100%, 0.1 = 10%, etc.)
-const RESPONSE_CHANCE = 0.1; // 10% de chance que Teemo réponde à un message d'utilisateur
+const RESPONSE_CHANCE = 0.01; // 10% de chance que Teemo réponde à un message d'utilisateur
 
 // ID du salon autorisé pour l'interaction de Teemo (remplace par l'ID de ton salon)
 const allowedChannelId = "1332366656428572693";
