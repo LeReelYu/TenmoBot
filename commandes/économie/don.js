@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, PermissionFlagsBits } = require("discord.js");
-const Economie = require("../../Sequelize/modèles/économie");
+const Economie = require("../../Sequelize/modèles/argent/économie");
 
 module.exports = {
   data: new SlashCommandBuilder()
