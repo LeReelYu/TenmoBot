@@ -70,7 +70,7 @@ module.exports = (client) => {
   // Vérifier si l'envoi automatique doit être fait à 13h15
   setInterval(async () => {
     const now = new Date();
-    if (now.getHours() === 1 && now.getMinutes() === 4 && !hasSentFactToday) {
+    if (now.getHours() === 8 && now.getMinutes() === 20 && !hasSentFactToday) {
       await sendFactOfTheDay(client);
     }
   }, 30 * 1000);
