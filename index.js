@@ -2,12 +2,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { Client, Collection, GatewayIntentBits } = require("discord.js");
 const { token } = require("./config.json");
-const autofeur = require("./autoscript/autofeur"); // Si autofeur.js est dans le même dossier que index.js
-const bjorn = require("./autoscript/bjorn");
-const sequelize = require("./Sequelize/sequelize"); // Importation de la connexion Sequelize
-const tenmoai = require("./iatenmo/tenmoai");
 const { saveMessage } = require("./Sequelize/modèles/ia/cerveauteemo"); // Assure-toi que saveMessage est importé
-const autochannel = require("./autoscript/autochannel");
 
 const client = new Client({
   intents: [
