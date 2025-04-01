@@ -16,7 +16,7 @@ module.exports = {
     .addUserOption((option) =>
       option
         .setName("cible")
-        .setDescription("Le membre que tu veux voler")
+        .setDescription("Le membre que tu veux essayer de voler")
         .setRequired(true)
     ),
 
@@ -35,7 +35,7 @@ module.exports = {
       );
 
       return interaction.reply({
-        content: `🕒 Tu dois attendre encore **${hours}h ${minutes}min** avant de tenter un nouveau vol !`,
+        content: `🕒 Tu dois attendre encore **${hours}h ${minutes}min** avant de tenter un nouveau vol, tricheur !`,
       });
     }
 
@@ -44,13 +44,13 @@ module.exports = {
 
     if (!user || !target) {
       return interaction.reply({
-        content: "L'un des deux joueurs n'a pas encore de compte !",
+        content: "L'un des deux membres n'a pas encore de compte !",
       });
     }
 
     if (target.pièces <= 0) {
       return interaction.reply({
-        content: `🚫 Impossible de voler <@${targetUser.id}>, son solde est insuffisant.`,
+        content: `🚫 Impossible de voler <@${targetUser.id}> qui est bien trop pauvre`,
       });
     }
 
@@ -61,7 +61,7 @@ module.exports = {
     };
 
     const embed = new EmbedBuilder()
-      .setTitle("💰 Tentative de vol ! 💰")
+      .setTitle("💰 Tentative de vol 💰")
       .setDescription(
         "Choisis ton niveau de vol :\n\n" +
           "🔴 **Niveau 1 : Vol à main armée**\n" +
