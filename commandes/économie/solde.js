@@ -4,14 +4,23 @@ const Economie = require("../../Sequelize/modèles/argent/économie");
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("solde")
-    .setDescription("Affiche le solde du compte choisi"),
+    .setDescription("Affiche le solde du compte choisi")
+    .addUserOption((option) =>
+      option
+        .setName("utilisateur")
+        .setDescription("L'utilisateur dont vous voulez voir le solde")
+        .setRequired(false)
+    ),
 
   async execute(interaction) {
+    const targetUser =
+      interaction.options.getUser("utilisateur") || interaction.user;
+
     const user = await Economie.findOne({
-      where: { userId: interaction.user.id },
+      where: { userId: targetUser.id },
     });
+
     if (user) {
-      // Tableau de phrases pré-écrites
       const phrases = [
         "Temmie et ici par volonter",
         "Tu es riche comme un roi des îles",
@@ -30,10 +39,8 @@ module.exports = {
         "o rat port",
       ];
 
-      // Sélection d'une phrase aléatoire
       const randomPhrase = phrases[Math.floor(Math.random() * phrases.length)];
 
-      // Fonction pour générer une couleur hexadécimale aléatoire
       function getRandomColor() {
         const letters = "0123456789ABCDEF";
         let color = "#";
@@ -44,16 +51,16 @@ module.exports = {
       }
 
       const embed = new EmbedBuilder()
-        .setTitle(`Solde bancaire de ${interaction.user.username}`)
+        .setTitle(`Solde bancaire de ${targetUser.username}`)
         .addFields(
           {
             name: "Nombre de champignons",
-            value: `Ton compte contient actuellement ${user.champignons} champignons !`,
+            value: `Ce compte contient actuellement ${user.champignons} champignons !`,
             inline: true,
           },
           {
             name: "Nombre de pièces",
-            value: `Ton compte contient actuellement ${user.pièces} pièces !`,
+            value: `Ce compte contient actuellement ${user.pièces} pièces !`,
             inline: true,
           },
           {
@@ -65,7 +72,7 @@ module.exports = {
         .setImage(
           "https://i.pinimg.com/originals/15/e1/5a/15e15a4882de568ffdf6b454044e2903.gif"
         )
-        .setColor(getRandomColor()) // Utilisation de la couleur aléatoire
+        .setColor(getRandomColor())
         .setFooter({
           text: "Capitaine Tenmo",
           iconURL:
@@ -75,7 +82,9 @@ module.exports = {
 
       await interaction.reply({ embeds: [embed] });
     } else {
-      await interaction.reply("Tu n'as pas encore de compte au lagon !");
+      await interaction.reply(
+        `${targetUser.username} n'a pas encore de compte au lagon !`
+      );
     }
   },
 };
