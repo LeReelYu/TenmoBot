@@ -4,7 +4,7 @@ const Economie = require("../../Sequelize/modèles/argent/économie");
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("solde")
-    .setDescription("Affiche le solde de ton compte"),
+    .setDescription("Affiche le solde du compte choisi"),
 
   async execute(interaction) {
     const user = await Economie.findOne({
@@ -21,8 +21,13 @@ module.exports = {
         "aWWWWWaaa",
         "AWA",
         "hOI!!!!!! JE SUI tEMMIE!!",
-        "GRO FUL",
+        "GRO FcUL",
         "TU ET TRO MIMIIII",
+        "OOOOooo tu et rich",
+        "Narval est gay",
+        "cherche plan fentanyl",
+        "jador travail",
+        "o rat port",
       ];
 
       // Sélection d'une phrase aléatoire
