@@ -23,9 +23,10 @@ module.exports = {
       } pièces**\n`;
     });
 
-    // Fonction pour générer une couleur aléatoire
+    // Fonction pour générer une couleur aléatoire valide
     const randomColor = () => {
-      return "#" + Math.floor(Math.random() * 16777215).toString(16);
+      const color = Math.floor(Math.random() * 16777215).toString(16); // Génère un nombre hexadécimal
+      return `#${color.padStart(6, "0")}`; // Ajoute des zéros si nécessaire pour obtenir une couleur valide
     };
 
     // Créer l'embed de réponse avec une couleur aléatoire

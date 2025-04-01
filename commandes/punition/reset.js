@@ -1,6 +1,7 @@
-const { SlashCommandBuilder } = require("discord.js");
+const { SlashCommandBuilder, MessageFlags } = require("discord.js");
 const Economie = require("../../Sequelize/modèles/argent/économie");
 const daily = require("../../Sequelize/modèles/argent/daily");
+const CooldownEco = require("../../Sequelize/modèles/argent/cooldowneco");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -11,49 +12,64 @@ module.exports = {
         .setName("utilisateur")
         .setDescription("Utilisateur dont le solde doit être réinitialisé")
         .setRequired(true)
+    )
+    .addBooleanOption((option) =>
+      option
+        .setName("reset_vol")
+        .setDescription("Réinitialiser également le cooldown du vol ?")
+        .setRequired(false)
     ),
 
   async execute(interaction) {
     const userId = interaction.options.getUser("utilisateur").id;
+    const resetVol = interaction.options.getBoolean("reset_vol") || false;
 
     // Vérifier si l'utilisateur a les permissions de ban
     if (!interaction.member.permissions.has("BAN_MEMBERS")) {
-      return interaction.reply(
-        "Désolé, tu n'as pas les permissions nécessaires pour utiliser cette commande."
-      );
+      return interaction.reply({
+        content:
+          "Désolé, tu n'as pas les permissions nécessaires pour utiliser cette commande.",
+        flags: MessageFlags.Ephemeral,
+      });
     }
 
-    // Chercher les données de l'utilisateur dans le modèle daily
+    // Réinitialisation du daily
     const dailyUser = await daily.findOne({ where: { userId: userId } });
-
     if (!dailyUser) {
-      return interaction.reply(
-        "Cet utilisateur n'a pas de données quotidiennes."
-      );
+      return interaction.reply({
+        content: "Cet utilisateur n'a pas de données quotidiennes.",
+        flags: MessageFlags.Ephemeral,
+      });
     }
 
-    // Calculer la date du jour précédent
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
-
-    // Réinitialiser lastClaimed à un jour avant la date actuelle
     dailyUser.lastClaimed = yesterday;
-
-    // Sauvegarder les changements
     await dailyUser.save();
 
-    // Réinitialiser le solde de l'utilisateur
+    // Réinitialisation du solde
     const user = await Economie.findOne({ where: { userId: userId } });
     if (user) {
-      user.champignons = 0; // Réinitialise les champignons
-      user.pièces = 0; // Réinitialise les pièces
+      user.champignons = 0;
+      user.pièces = 0;
       await user.save();
     } else {
-      return interaction.reply("L'utilisateur n'a pas de compte économique.");
+      return interaction.reply({
+        content: "L'utilisateur n'a pas de compte économique.",
+        flags: MessageFlags.Ephemeral,
+      });
     }
 
-    return interaction.reply(
-      `${userId} a été réinitialisé avec succès à un solde de 0 et un dernier appel de daily au ${yesterday.toLocaleDateString()}.`
-    );
+    // Réinitialisation du cooldown de vol si demandé
+    if (resetVol) {
+      await CooldownEco.destroy({ where: { userId: userId } });
+    }
+
+    return interaction.reply({
+      content: `${userId} a été réinitialisé avec succès à un solde de 0 et un dernier appel de daily au ${yesterday.toLocaleDateString()}.${
+        resetVol ? " Le cooldown du vol a aussi été réinitialisé." : ""
+      }`,
+      flags: MessageFlags.Ephemeral,
+    });
   },
 };

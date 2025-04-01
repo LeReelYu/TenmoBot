@@ -56,17 +56,9 @@ module.exports = {
 
     // Retirer les fonds de la monnaie spécifiée
     if (monnaie === "pièces") {
-      if (user.pièces < montant) {
-        return interaction.reply("Cet utilisateur n'a pas assez de pièces.");
-      }
-      user.pièces -= montant;
+      user.pièces -= montant; // Permet d'aller en négatif
     } else if (monnaie === "champignons") {
-      if (user.champignons < montant) {
-        return interaction.reply(
-          "Cet utilisateur n'a pas assez de champignons."
-        );
-      }
-      user.champignons -= montant;
+      user.champignons -= montant; // Permet d'aller en négatif
     }
 
     // Sauvegarder les modifications

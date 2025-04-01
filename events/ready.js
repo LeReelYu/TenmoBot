@@ -7,17 +7,17 @@ const fotd = require("../autoscript/fotd");
 const tenmoai = require("../iatenmo/tenmoai");
 const tenmohoroscope = require("../iatenmo/horoscope");
 const autochannel = require("../autoscript/autochannel");
-const Economie = require("../Sequelize/modèles/économie");
+const Economie = require("../Sequelize/modèles/argent/économie");
+const Cooldowneco = require("../Sequelize/modèles/argent/cooldowneco");
 
 module.exports = {
   name: Events.ClientReady,
   once: true,
   async execute(client) {
-    // On rend 'execute' asynchrone pour utiliser 'await'
     console.log(`🔥 Capitaine ${client.user.tag} au rapport !`);
 
-    autofeur(client); // Lancement du script autofeur
-    bjorn(client); // Lancement du script bjorn
+    autofeur(client);
+    bjorn(client);
     fotd(client);
     tenmoai(client);
     tenmohoroscope(client);
@@ -27,7 +27,6 @@ module.exports = {
       console.log("📦 Base de données synchronisée !");
     });
 
-    // 🎮 Définition de la Rich Presence dynamique
     const statuses = [
       { name: "son nombre de champignons posés", type: ActivityType.Watching },
       { name: "placer plus de champignons", type: ActivityType.Playing },
@@ -41,44 +40,54 @@ module.exports = {
       i++;
     };
 
-    // Définir immédiatement la présence et changer toutes les 5 minutes
     updatePresence();
-    setInterval(updatePresence, 300000); // 30 minutes = 1800000 ms
-
+    setInterval(updatePresence, 300000);
     console.log("🎮 Rich Presence activée !");
 
-    // Vérifier que tous les utilisateurs dans le serveur ont une entrée dans la base de données
     try {
-      // Récupérer le guildId depuis ton config.json
       const { guildId } = config;
-
-      // Récupérer le serveur (guild)
       const guild = await client.guilds.fetch(guildId);
-      const members = await guild.members.fetch(); // Récupérer tous les membres du serveur
+      const members = await guild.members.fetch();
 
-      // Parcours de tous les membres et vérification de leur compte dans la base de données
+      const existingUsers = await Economie.findAll();
+      const existingUserIds = existingUsers.map((user) => user.userId);
+
+      const serverMemberIds = members.map((member) => member.id);
+
+      // Vérification et création des comptes pour les nouveaux membres
       for (const member of members.values()) {
-        const existingUser = await Economie.findOne({
-          where: { userId: member.id },
-        });
-
-        if (!existingUser) {
-          // Si l'utilisateur n'a pas de compte, en créer un avec un solde initial
+        if (!existingUserIds.includes(member.id)) {
           await Economie.create({
             userId: member.id,
-            champignons: 0, // Valeur initiale pour champignons
-            pièces: 0, // Valeur initiale pour pièces
+            champignons: 0,
+            pièces: 0,
           });
-          console.log(`Compte créé pour ${member.user.tag}`);
+          console.log(`✅ Compte créé pour ${member.user.tag}`);
         }
       }
 
-      console.log(
-        "💵Tous les comptes ont été vérifiés et créés si nécessaire."
+      // Suppression des comptes des membres qui ont quitté le serveur
+      const membersToDelete = existingUsers.filter(
+        (user) => !serverMemberIds.includes(user.userId)
       );
+
+      if (membersToDelete.length > 0) {
+        const userIdsToDelete = membersToDelete.map((user) => user.userId);
+        await Economie.destroy({ where: { userId: userIdsToDelete } });
+
+        console.log(
+          `🗑️ Comptes supprimés pour ${membersToDelete.length} membres ayant quitté le serveur.`
+        );
+      } else {
+        console.log(
+          "✅ Aucun compte à supprimer, tous les utilisateurs sont encore sur le serveur."
+        );
+      }
+
+      console.log("💵 Vérification et nettoyage des comptes terminés.");
     } catch (error) {
       console.error(
-        "Erreur lors de la vérification des comptes des membres:",
+        "❌ Erreur lors de la gestion des comptes des membres:",
         error
       );
     }

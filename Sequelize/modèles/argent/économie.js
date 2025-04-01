@@ -7,20 +7,20 @@ const Economie = sequelize.define("Economie", {
     primaryKey: true,
   },
   champignons: {
-    // Monnaie rare
+    // Monnaie rare (ne peut pas être négative)
     type: DataTypes.INTEGER,
     defaultValue: 0,
+    allowNull: false,
+    validate: {
+      min: 0, // Empêche les valeurs négatives
+    },
   },
   pièces: {
-    // Monnaie commune
+    // Monnaie commune (peut être négative)
     type: DataTypes.INTEGER,
     defaultValue: 0,
+    allowNull: false, // Toujours défini
   },
 });
-
-// Synchronisation automatique avec la base de données
-(async () => {
-  await sequelize.sync();
-})();
 
 module.exports = Economie;
