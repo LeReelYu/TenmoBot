@@ -2,7 +2,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { Client, Collection, GatewayIntentBits } = require("discord.js");
 const { token } = require("./config.json");
-const { saveMessage } = require("./Sequelize/modèles/ia/cerveauteemo"); // Assure-toi que saveMessage est importé
+const { saveMessage } = require("./Sequelize/modèles/ia/cerveauteemo");
 
 const client = new Client({
   intents: [
