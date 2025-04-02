@@ -8,7 +8,6 @@ const tenmoai = require("../iatenmo/tenmoai");
 const tenmohoroscope = require("../iatenmo/horoscope");
 const autochannel = require("../autoscript/autochannel");
 const Economie = require("../Sequelize/modèles/argent/économie");
-const Cooldowneco = require("../Sequelize/modèles/argent/cooldowneco");
 
 module.exports = {
   name: Events.ClientReady,
