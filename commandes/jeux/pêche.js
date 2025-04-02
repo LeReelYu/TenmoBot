@@ -96,7 +96,7 @@ module.exports = {
     let hasWon = false;
     let lost = false; // Indicateur pour savoir si l'utilisateur a perdu
 
-    const isFishingSuccessful = Math.random() < 0.9;
+    const isFishingSuccessful = Math.random() < 0.5;
 
     await message.react("💧");
 
