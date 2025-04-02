@@ -1,9 +1,26 @@
 const { Events, MessageFlags } = require("discord.js");
+// Assure-toi que le modèle est importé sous le bon nom (ModeTest)
+const ModeTest = require("../Sequelize/modèles/modetest"); // Vérifie le chemin et le nom du modèle
 
 module.exports = {
   name: Events.InteractionCreate,
   async execute(interaction) {
     if (!interaction.isChatInputCommand()) return;
+
+    // Vérifier si le mode test est activé
+    const guildId = interaction.guild.id;
+    const testMode = await ModeTest.findOne({ where: { guildId: guildId } });
+
+    if (
+      testMode &&
+      testMode.enabled &&
+      interaction.channel.id !== testMode.channelId
+    ) {
+      // Si le mode test est activé et que la commande est dans un autre salon
+      return interaction.reply(
+        "Je suis occupé ailleurs, laisse-moi tranquille !"
+      );
+    }
 
     const command = interaction.client.commands.get(interaction.commandName);
 
