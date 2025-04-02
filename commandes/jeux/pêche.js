@@ -125,7 +125,7 @@ module.exports = {
 
           collector.on("collect", async (reaction, user) => {
             try {
-              const bonus = betAmount * 0.25;
+              const bonus = betAmount * 0.5;
               userEconomy.pièces += bonus;
               await userEconomy.save();
 
