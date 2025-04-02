@@ -7,7 +7,7 @@ const {
   MessageFlags,
 } = require("discord.js");
 const Economie = require("../../Sequelize/modèles/argent/économie");
-const CooldownEco = require("../../Sequelize/modèles/argent/cooldowneco");
+const Cdvol = require("../../Sequelize/modèles/argent/cdvol");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -26,7 +26,7 @@ module.exports = {
     const now = Date.now();
     const cooldownTime = 3 * 60 * 60 * 1000; // 3 heures
 
-    const cooldownRecord = await CooldownEco.findOne({ where: { userId } });
+    const cooldownRecord = await Cdvol.findOne({ where: { userId } });
     if (cooldownRecord && now - cooldownRecord.lastAttempt < cooldownTime) {
       const remainingTime = cooldownTime - (now - cooldownRecord.lastAttempt);
       const hours = Math.floor(remainingTime / (60 * 60 * 1000));
@@ -154,7 +154,7 @@ module.exports = {
           resultMessage = `❌ Échec ! Tu as été attrapé et tu perds **${lossAmount}** pièces...`;
         }
 
-        await CooldownEco.upsert({ userId, lastAttempt: now });
+        await Cdvol.upsert({ userId, lastAttempt: now });
 
         await interaction.editReply({
           content: resultMessage,
