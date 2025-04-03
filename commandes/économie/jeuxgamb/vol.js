@@ -9,7 +9,6 @@ const {
 const Economie = require("../../../Sequelize/modèles/argent/économie");
 const Cdvol = require("../../../Sequelize/modèles/argent/cdvol");
 const Inventaire = require("../../../Sequelize/modèles/argent/inventaire"); // Ajout du modèle d'inventaire
-const Objets = require("../../../Sequelize/modèles/argent/objets"); // Modèle des objets
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -56,35 +55,37 @@ module.exports = {
       });
     }
 
-    // Vérification si la cible a une protection anti-vol dans son inventaire
-    const protectionItem = await Objets.findOne({
-      where: { name: "Protection anti-vol" },
+    // Vérification si la cible a une protection anti-vol (itemId = 4)
+    const protectionItemId = 4;
+    const targetInventory = await Inventaire.findOne({
+      where: { userId: targetUser.id, itemId: protectionItemId },
     });
 
-    const targetInventory = await Inventaire.findAll({
-      where: { userId: targetUser.id },
-    });
-    const hasProtection = targetInventory.some(
-      (item) => item.itemId === protectionItem.id
-    );
+    if (targetInventory && targetInventory.quantity > 0) {
+      // Supprimer une unité de protection
+      await Inventaire.decrement(
+        { quantity: 1 },
+        { where: { userId: targetUser.id, itemId: protectionItemId } }
+      );
 
-    if (hasProtection) {
-      // Si la cible a une protection anti-vol
-      await Inventaire.destroy({
-        where: { userId: targetUser.id, itemId: protectionItem.id },
-      }); // Retirer la protection
+      // Vérifier si la quantité est tombée à 0 et supprimer l'entrée
+      const updatedInventory = await Inventaire.findOne({
+        where: { userId: targetUser.id, itemId: protectionItemId },
+      });
+
+      if (updatedInventory && updatedInventory.quantity <= 0) {
+        await updatedInventory.destroy();
+      }
+
+      // Ajouter le cooldown de vol pour celui qui a lancé la commande
+      await Cdvol.upsert({ userId, lastAttempt: now });
 
       return interaction.reply({
-        content: `🚫 Cette personne s'est protégée ! Mince... Elle a perdu une protection anti-vol.`,
+        content: `🚫 <@${targetUser.id}> était protégé par une **Protection anti-vol** ! Il l'a perdu, mais tu n'as rien volé. Tu as maintenant un cooldown de vol de **3 heures** !`,
       });
     }
 
-    // Fonction pour générer une couleur aléatoire valide
-    const randomColor = () => {
-      const color = Math.floor(Math.random() * 16777215).toString(16); // Génère un nombre hexadécimal
-      return `#${color.padStart(6, "0")}`; // Ajoute des zéros si nécessaire pour obtenir une couleur valide
-    };
-
+    // Suite du code si la cible n'a pas de protection...
     const embed = new EmbedBuilder()
       .setTitle("💰 Tentative de vol 💰")
       .setDescription(
@@ -93,7 +94,7 @@ module.exports = {
           "🟡 **Niveau 2 : Vol à l'arrachée**\n" +
           "🟢 **Niveau 3 : Optimisation fiscale**"
       )
-      .setColor(randomColor()) // Couleur aléatoire valide
+      .setColor("#ff0000")
       .setFooter({ text: "Clique sur un bouton pour choisir !" });
 
     const row = new ActionRowBuilder().addComponents(
@@ -113,7 +114,7 @@ module.exports = {
 
     await interaction.reply({ embeds: [embed], components: [row] });
 
-    // Utiliser interaction.channel.createMessageComponentCollector()
+    // Création du collector après la réponse de l'interaction
     const collector = interaction.channel.createMessageComponentCollector({
       time: 15000,
     });
