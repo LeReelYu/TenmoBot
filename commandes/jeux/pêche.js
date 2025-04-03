@@ -5,10 +5,12 @@ module.exports = {
   data: new SlashCommandBuilder()
     .setName("peche")
     .setDescription("Lance une session de pêche !")
-    .addIntegerOption((option) =>
+    .addStringOption((option) =>
       option
         .setName("mise")
-        .setDescription("Choisissez la mise que vous voulez parier")
+        .setDescription(
+          "Choisissez la mise que vous voulez parier (ou 'all' pour tout miser)"
+        )
         .setRequired(true)
     ),
   async execute(interaction) {
@@ -32,11 +34,20 @@ module.exports = {
     const bottomEmojis = ["🪸", "🌿"];
     const gridSize = 7;
 
-    const betAmount = interaction.options.getInteger("mise");
+    // Récupérer la mise de l'utilisateur
+    const betOption = interaction.options.getString("mise");
 
     const userEconomy = await Economie.findOne({
       where: { userId: interaction.user.id },
     });
+
+    let betAmount = 0;
+
+    if (betOption === "all") {
+      betAmount = userEconomy.pièces;
+    } else {
+      betAmount = parseInt(betOption);
+    }
 
     if (!userEconomy || userEconomy.pièces < betAmount) {
       return interaction.reply(
