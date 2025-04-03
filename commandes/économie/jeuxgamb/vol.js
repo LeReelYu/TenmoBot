@@ -8,6 +8,8 @@ const {
 } = require("discord.js");
 const Economie = require("../../../Sequelize/modèles/argent/économie");
 const Cdvol = require("../../../Sequelize/modèles/argent/cdvol");
+const Inventaire = require("../../../Sequelize/modèles/argent/inventaire"); // Ajout du modèle d'inventaire
+const Objets = require("../../../Sequelize/modèles/argent/objets"); // Modèle des objets
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -51,6 +53,29 @@ module.exports = {
     if (target.pièces <= 0) {
       return interaction.reply({
         content: `🚫 Impossible de voler <@${targetUser.id}> qui est bien trop pauvre`,
+      });
+    }
+
+    // Vérification si la cible a une protection anti-vol dans son inventaire
+    const protectionItem = await Objets.findOne({
+      where: { name: "Protection anti-vol" },
+    });
+
+    const targetInventory = await Inventaire.findAll({
+      where: { userId: targetUser.id },
+    });
+    const hasProtection = targetInventory.some(
+      (item) => item.itemId === protectionItem.id
+    );
+
+    if (hasProtection) {
+      // Si la cible a une protection anti-vol
+      await Inventaire.destroy({
+        where: { userId: targetUser.id, itemId: protectionItem.id },
+      }); // Retirer la protection
+
+      return interaction.reply({
+        content: `🚫 Cette personne s'est protégée ! Mince... Elle a perdu une protection anti-vol.`,
       });
     }
 
