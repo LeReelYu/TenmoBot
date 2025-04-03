@@ -1,6 +1,5 @@
 const { Events, MessageFlags } = require("discord.js");
-// Assure-toi que le modèle est importé sous le bon nom (ModeTest)
-const ModeTest = require("../Sequelize/modèles/modetest"); // Vérifie le chemin et le nom du modèle
+const ModeTest = require("../Sequelize/modèles/modetest");
 
 module.exports = {
   name: Events.InteractionCreate,
