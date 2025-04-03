@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, MessageFlags } = require("discord.js");
+const { SlashCommandBuilder, PermissionFlagsBits } = require("discord.js");
 const Objets = require("../../../Sequelize/modèles/argent/objets"); // Modèle des objets
 const Inventaire = require("../../../Sequelize/modèles/argent/inventaire"); // Modèle d'inventaire
 const RusseGlobal = require("../../../Sequelize/modèles/russeglobal"); // Modèle de la roulette globale
@@ -90,6 +90,15 @@ module.exports = {
     // Tirer une balle pour la cible (targetUser)
     const rollResult = balls[game.remainingShots];
 
+    // Récupérer la cible en tant que membre du serveur
+    const targetMember = interaction.guild.members.cache.get(targetUser.id);
+
+    if (!targetMember || !targetMember.moderatable) {
+      return interaction.followUp(
+        `🎲 **${targetUser.username} aurait perdu...** mais il a pris ses précautions !`
+      );
+    }
+
     if (rollResult === "lost") {
       if (
         !interaction.guild.members.me.permissions.has(
@@ -98,19 +107,15 @@ module.exports = {
       ) {
         return interaction.followUp({
           content: "❌ Je n'ai pas la permission de mute les membres !",
-          ephemeral: true,
         });
-      }
-
-      if (!targetUser.moderatable) {
-        return interaction.followUp(
-          `🎲 **${targetUser.username} aurait perdu...** mais il a pris ses précautions !`
-        );
       }
 
       // Appliquer le timeout sur la cible si elle perd
       try {
-        await targetUser.timeout(60 * 1000, "Perdu à la roulette de Bandle !");
+        await targetMember.timeout(
+          60 * 1000,
+          "Perdu à la roulette de Bandle !"
+        );
         await interaction.followUp(
           `🎲 **Oh non ${targetUser.username}... C'était une vraie balle... !**`
         );
