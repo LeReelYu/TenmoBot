@@ -4,27 +4,40 @@ const fs = require("node:fs");
 const path = require("node:path");
 
 const commands = [];
-// Prend toutes les fichiers de commandes du fichier
-const foldersPath = path.join(__dirname, "commandes");
-const commandFolders = fs.readdirSync(foldersPath);
 
-for (const folder of commandFolders) {
-  // Récupère tous les fichiers commandes trouvés
-  const commandsPath = path.join(foldersPath, folder);
-  const commandFiles = fs
-    .readdirSync(commandsPath)
-    .filter((file) => file.endsWith(".js"));
-  // Récupère les commandes slashs de chaque données
-  for (const file of commandFiles) {
-    const filePath = path.join(commandsPath, file);
-    const command = require(filePath);
-    if ("data" in command && "execute" in command) {
-      commands.push(command.data.toJSON());
-    } else {
-      console.log(
-        `[ALERTE] La commande ${filePath} manque sa valeur 'data' ou 'execute' pour bien fonctionner`
-      );
+// Fonction récursive pour récupérer tous les fichiers de commande
+const getAllCommandFiles = (dir) => {
+  const files = fs.readdirSync(dir);
+  let commandFiles = [];
+
+  files.forEach((file) => {
+    const filePath = path.join(dir, file);
+    const stat = fs.statSync(filePath);
+
+    if (stat.isDirectory()) {
+      // Si c'est un dossier, on appelle récursivement pour ce dossier
+      commandFiles = commandFiles.concat(getAllCommandFiles(filePath));
+    } else if (file.endsWith(".js")) {
+      // Si c'est un fichier .js, on l'ajoute à la liste des fichiers de commandes
+      commandFiles.push(filePath);
     }
+  });
+
+  return commandFiles;
+};
+
+// On récupère tous les fichiers de commandes, y compris ceux dans les sous-dossiers
+const commandFiles = getAllCommandFiles(path.join(__dirname, "commandes"));
+
+// On récupère les commandes slashs de chaque fichier
+for (const filePath of commandFiles) {
+  const command = require(filePath);
+  if ("data" in command && "execute" in command) {
+    commands.push(command.data.toJSON());
+  } else {
+    console.log(
+      `[ALERTE] La commande ${filePath} manque sa valeur 'data' ou 'execute' pour bien fonctionner`
+    );
   }
 }
 
@@ -35,7 +48,7 @@ const rest = new REST().setToken(token);
   try {
     console.log(`Je commence à rafraîchir ${commands.length} commandes`);
 
-    // Rafraichi toutes les commandes possible
+    // Rafraîchi toutes les commandes possibles
     const data = await rest.put(
       Routes.applicationGuildCommands(clientId, guildId),
       { body: commands }
@@ -47,18 +60,3 @@ const rest = new REST().setToken(token);
     console.error(error);
   }
 })();
-
-// Commandes dans le serveur
-/*rest
-  .delete(
-    Routes.applicationGuildCommand(clientId, guildId, "1352428009235288074")
-  )
-  .then(() => console.log("Pouf plus de commande sur le serveur"))
-  .catch(console.error);
-
-// Commandes globales
-rest
-  .delete(Routes.applicationCommand(clientId, "1352428009235288074"))
-  .then(() => console.log("Pouf plus de commande tout court"))
-  .catch(console.error);*/
-// node deploy-commands.js pour lancer l'action, retirer le /* et */ pour réactiver le système de suppression
