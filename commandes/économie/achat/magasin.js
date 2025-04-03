@@ -95,7 +95,7 @@ module.exports = {
     // Créer un collector pour écouter les interactions sur le message
     const collector = interaction.channel.createMessageComponentCollector({
       filter,
-      time: 12000,
+      time: 35000,
     });
 
     collector.on("collect", async (i) => {
@@ -146,7 +146,6 @@ module.exports = {
               console.log("L'utilisateur n'a pas de compte économique.");
               return confirmInteraction.reply({
                 content: "Tu n'as pas de compte... Comme c'est curieux",
-                ephemeral: true,
               });
             }
 
