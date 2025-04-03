@@ -15,7 +15,8 @@ module.exports = {
 
       if (objets.length === 0) {
         return interaction.reply({
-          content: "Il n'y a actuellement aucun objet dans l'inventaire.",
+          content:
+            "Il n'y a actuellement aucun objet dans ton inventaire, sale pauvre.",
         });
       }
 
