@@ -41,8 +41,8 @@ module.exports = {
       }
     }
 
-    // Chance de 85 % de succès
-    if (Math.random() > 0.85) {
+    // Chance de 90 % de succès
+    if (Math.random() > 0.9) {
       return interaction.reply(
         "❌ Tu n'as pas eu de chance cette fois-ci, réessaie plus tard !"
       );
