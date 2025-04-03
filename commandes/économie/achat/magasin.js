@@ -123,10 +123,13 @@ module.exports = {
 
         const rowConfirm = new ActionRowBuilder().addComponents(confirmButton);
 
-        await i.update({
-          embeds: [confirmEmbed],
-          components: [rowConfirm],
-        });
+        // Introduire un délai avant de montrer la confirmation
+        setTimeout(async () => {
+          await i.update({
+            embeds: [confirmEmbed],
+            components: [rowConfirm],
+          });
+        }, 2000); // Latence de 2 secondes avant la confirmation d'achat
 
         const confirmCollector =
           interaction.channel.createMessageComponentCollector({
