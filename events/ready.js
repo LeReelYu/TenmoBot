@@ -43,22 +43,6 @@ module.exports = {
     setInterval(updatePresence, 300000);
     console.log("🎮 Rich Presence activée !");
 
-    const { DateTime } = require("luxon");
-
-    module.exports = () => {
-      const now = DateTime.now();
-      const parisTime = DateTime.now().setZone("Europe/Paris");
-
-      console.log(
-        "🕒 Heure système (UTC ou serveur) :",
-        now.toFormat("HH:mm:ss ZZZZ")
-      );
-      console.log(
-        "🇫🇷 Heure Europe/Paris :",
-        parisTime.toFormat("HH:mm:ss ZZZZ")
-      );
-    };
-
     try {
       const { guildId } = config;
       const guild = await client.guilds.fetch(guildId);
