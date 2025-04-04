@@ -6,13 +6,13 @@ function scheduleCommit() {
     const now = DateTime.now().setZone("Europe/Paris");
 
     // On regarde si l'heure actuelle est 12:10 ou 00:10
-    if (now.minute === 38 && (now.hour === 12 || now.hour === 0)) {
+    if (now.minute === 39 && (now.hour === 12 || now.hour === 0)) {
       console.log(
         `⏰ Il est ${now.toFormat("HH:mm:ss")}, lancement du commit !`
       );
       commitDatabaseFile(); // Remplace avec ta fonction de commit
     }
-  }, 30000); // Vérification toutes les 30 secondes
+  }, 1000); // Vérification toutes les 30 secondes
 }
 
 // Fonction de commit
