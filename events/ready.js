@@ -90,6 +90,6 @@ module.exports = {
         error
       );
     }
-    console.log("Successfully finished startup");
+    console.log("successfully finished startup");
   },
 };
