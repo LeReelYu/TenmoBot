@@ -1,4 +1,3 @@
-// commitdb.js
 const { SlashCommandBuilder } = require("discord.js");
 const { commitDatabaseFile } = require("../../events/github"); // Importer la fonction commitDatabaseFile
 
