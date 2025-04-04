@@ -26,6 +26,32 @@ module.exports = {
       });
     }
 
+    // Récupérer la mise de l'utilisateur
+    const betOption = interaction.options.getString("mise");
+
+    const userEconomy = await Economie.findOne({
+      where: { userId: interaction.user.id },
+    });
+
+    if (!userEconomy || userEconomy.pièces <= 0) {
+      return interaction.reply(
+        "❌ Tu n'as pas d'argent pour pêcher. Gagne un peu de pièces avant de revenir !"
+      );
+    }
+
+    let betAmount = 0;
+    if (betOption === "all") {
+      betAmount = userEconomy.pièces;
+    } else {
+      betAmount = parseInt(betOption);
+    }
+
+    if (isNaN(betAmount) || betAmount <= 0 || userEconomy.pièces < betAmount) {
+      return interaction.reply(
+        "❌ Tu n'as pas assez de pièces pour cette mise. Réessaie avec un montant plus petit."
+      );
+    }
+
     // Marque l'utilisateur comme en train de pêcher
     activeFishingUsers.set(userId, true);
 
@@ -48,28 +74,6 @@ module.exports = {
     const fishEmojis = ["🐠", "🐟", "🐡"];
     const bottomEmojis = ["🪸", "🌿"];
     const gridSize = 7;
-
-    // Récupérer la mise de l'utilisateur
-    const betOption = interaction.options.getString("mise");
-
-    const userEconomy = await Economie.findOne({
-      where: { userId: interaction.user.id },
-    });
-
-    let betAmount = 0;
-
-    if (betOption === "all") {
-      betAmount = userEconomy.pièces;
-    } else {
-      betAmount = parseInt(betOption);
-    }
-
-    if (!userEconomy || userEconomy.pièces < betAmount) {
-      activeFishingUsers.delete(userId);
-      return interaction.reply(
-        "Vous n'avez pas assez d'argent pour cette mise. 🛑"
-      );
-    }
 
     function generateSea() {
       let sea = "";
