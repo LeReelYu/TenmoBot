@@ -21,6 +21,13 @@ const randomPhrases = [
   "Un investissement n'est pas un acte de charité. Ne l'oublie pas.",
 ];
 
+// 🔒 Utilisateurs avec shop ouvert
+const activeShops = new Set();
+// Suivi du cooldown des utilisateurs
+const lastUsed = new Map();
+
+const COOLDOWN_TIME = 10000; // 20 secondes en millisecondes
+
 function getRandomPhrase() {
   return randomPhrases[Math.floor(Math.random() * randomPhrases.length)];
 }
@@ -33,15 +40,46 @@ module.exports = {
     ),
 
   async execute(interaction) {
+    const userId = interaction.user.id;
+
+    // Vérifier si un cooldown est en cours pour cet utilisateur
+    const lastUsedTime = lastUsed.get(userId);
+    const currentTime = Date.now();
+
+    if (lastUsedTime && currentTime - lastUsedTime < COOLDOWN_TIME) {
+      const timeLeft = Math.ceil(
+        (COOLDOWN_TIME - (currentTime - lastUsedTime)) / 1000
+      );
+      return interaction.reply({
+        content: `Tu dois attendre encore ${timeLeft} seconde(s) avant de pouvoir utiliser la commande à nouveau.`,
+        ephemeral: true,
+      });
+    }
+
+    // Mettre à jour le dernier moment d'utilisation
+    lastUsed.set(userId, currentTime);
+
+    // 🚫 Bloquer si shop déjà actif
+    if (activeShops.has(userId)) {
+      return interaction.reply({
+        content:
+          "Tu es déjà en train de discuter avec Jade. Termine cette transaction d'abord...",
+        ephemeral: true,
+      });
+    }
+
+    activeShops.add(userId); // ✅ Marquer le shop comme actif
+
     const items = await Objets.findAll();
+    let shopClosed = false;
 
     if (items.length === 0) {
+      activeShops.delete(userId);
       return interaction.reply(
         "La boutique Bonajade est pour le moment indisponible."
       );
     }
 
-    // Embed modifié pour correspondre au style de Bonajade avec les nouvelles images et couleurs
     const shopEmbed = new EmbedBuilder()
       .setColor("#9b00ff") // Couleur pourpre pour l'embed
       .setTitle("Bienvenue dans la **Boutique Bonajade**")
@@ -56,7 +94,7 @@ module.exports = {
         }))
       )
       .setImage(
-        "https://cdn.discordapp.com/attachments/1352351466328948786/1357209612801015808/jade-a-moment-among-the-stars-a-moment-among-the-stars.gif?ex=67ef5f73&is=67ee0df3&hm=9b5c9eefdcfe5eeba98c6e4208699f90bf643ab29971f8949091241175cc152a&"
+        "https://cdn.discordapp.com/attachments/1352351466328948786/1357209612801015808/jade-a-moment-among-the-stars-a-moment-among-the-stars.gif"
       ) // Gif de Jade
       .setFooter({
         text: "Jade",
@@ -106,114 +144,101 @@ module.exports = {
         if (!item) {
           return i.reply({
             content: "Cet objet n'existe pas.",
+            ephemeral: true,
           });
         }
 
-        const confirmEmbed = new EmbedBuilder()
-          .setColor("#ffcc00")
-          .setTitle("Confirmation d'achat")
-          .setDescription(
-            `Es-tu sûr de vouloir acheter **${item.name}** pour **${item.price}** pièces ?`
-          );
-
-        const confirmButton = new ButtonBuilder()
-          .setCustomId("confirm_purchase")
-          .setLabel("Confirmer l'achat")
-          .setStyle(ButtonStyle.Success);
-
-        const rowConfirm = new ActionRowBuilder().addComponents(confirmButton);
-
-        // Introduire un délai avant de montrer la confirmation
-        setTimeout(async () => {
-          await i.update({
-            embeds: [confirmEmbed],
-            components: [rowConfirm],
-          });
-        }, 2000); // Latence de 2 secondes avant la confirmation d'achat
-
-        const confirmCollector =
-          interaction.channel.createMessageComponentCollector({
-            filter,
-            time: 10000,
-          });
-
-        confirmCollector.on("collect", async (confirmInteraction) => {
-          if (confirmInteraction.customId === "confirm_purchase") {
-            // Récupérer l'utilisateur depuis le modèle d'économie
-            const userEconomy = await Economie.findOne({
-              where: { userId: interaction.user.id },
-            });
-
-            // Si l'utilisateur n'a pas de compte économique ou si le solde est incorrect
-            if (!userEconomy) {
-              console.log("L'utilisateur n'a pas de compte économique.");
-              return confirmInteraction.reply({
-                content: "Tu n'as pas de compte... Comme c'est curieux",
-              });
-            }
-
-            if (userEconomy.pièces < item.price) {
-              const errorEmbed = new EmbedBuilder()
-                .setColor("#ff0000")
-                .setTitle("Achat impossible")
-                .setDescription(
-                  "Tu n'as pas assez de pièces pour acheter cet objet."
-                );
-
-              await confirmInteraction.update({
-                embeds: [errorEmbed],
-                components: [],
-              });
-              return;
-            }
-
-            // Afficher le solde avant l'achat pour déboguer
-            console.log(`Solde avant l'achat: ${userEconomy.pièces}`);
-
-            // Retirer les pièces de l'utilisateur
-            userEconomy.pièces -= item.price;
-
-            // Vérification du solde après retrait
-            console.log(`Solde après retrait: ${userEconomy.pièces}`);
-
-            await userEconomy.save();
-
-            // Ajouter l'objet à l'inventaire
-            await Inventaire.create({
-              userId: interaction.user.id, // On utilise l'ID de l'utilisateur pour l'inventaire
-              itemId: item.id,
-            });
-
-            // Embed de succès avec le gif spécifique après l'achat
-            const successEmbed = new EmbedBuilder()
-              .setColor("#00ff00")
-              .setTitle("Achat réussi !")
-              .setDescription(
-                `Contente d'avoir fait affaire avec toi, tu as acquis **${item.name}** !`
-              )
-              .setImage(
-                "https://cdn.discordapp.com/attachments/1352351466328948786/1357209948228161618/jade-honkai.gif?ex=67ef5fc3&is=67ee0e43&hm=11856319aadfc6267f8de66da275cdd49c048567516c020402207978fcbc1dd1&"
-              ); // Gif spécifique après l'achat
-
-            await confirmInteraction.update({
-              embeds: [successEmbed],
-              components: [],
-            });
-
-            confirmCollector.stop();
-          }
+        const userEconomy = await Economie.findOne({
+          where: { userId },
         });
+
+        if (!userEconomy) {
+          return i.reply({
+            content: "Tu n'as pas de compte... Comme c'est curieux",
+            ephemeral: true,
+          });
+        }
+
+        if (userEconomy.pièces < item.price) {
+          const errorEmbed = new EmbedBuilder()
+            .setColor("#ff0000")
+            .setTitle("Achat impossible")
+            .setDescription(
+              "Tu n'as pas assez de pièces pour acheter cet objet."
+            );
+
+          await i.update({
+            embeds: [errorEmbed],
+            components: [],
+          });
+          return;
+        }
+
+        // Retirer les pièces de l'utilisateur
+        userEconomy.pièces -= item.price;
+        await userEconomy.save();
+
+        // Vérifier si l'objet est déjà dans l'inventaire
+        const existingItem = await Inventaire.findOne({
+          where: {
+            userId,
+            itemId: item.id,
+          },
+        });
+
+        if (existingItem) {
+          // Si l'objet existe déjà dans l'inventaire, on incrémente la quantity
+          existingItem.quantity += 1;
+          await existingItem.save(); // Sauvegarder la mise à jour
+        } else {
+          // Si l'objet n'existe pas, on l'ajoute avec une quantity de 1
+          await Inventaire.create({
+            userId,
+            itemId: item.id,
+            quantity: 1, // Remplacer quantité par quantity ici
+          });
+        }
+
+        // Embed de succès avec le gif spécifique après l'achat
+        const successEmbed = new EmbedBuilder()
+          .setColor("#00ff00")
+          .setTitle("Achat réussi !")
+          .setDescription(
+            `Contente d'avoir fait affaire avec toi, tu as acquis **${item.name}** !`
+          )
+          .setImage(
+            "https://cdn.discordapp.com/attachments/1352351466328948786/1357209948228161618/jade-honkai.gif"
+          ); // Gif spécifique après l'achat
+
+        // Essayer d'éviter l'erreur d'interaction expirée en mettant à jour l'interaction correctement
+        try {
+          await i.update({
+            embeds: [successEmbed],
+            components: [],
+          });
+        } catch (error) {
+          console.error(
+            "Erreur lors de la mise à jour de l'interaction:",
+            error
+          );
+        }
+
+        shopClosed = true;
+        activeShops.delete(userId); // ✅ Libérer l'accès à la commande
       }
     });
 
     collector.on("end", async () => {
-      // Au lieu de vérifier la suppression du message, on fait une simple mise à jour du message
-      await interaction.editReply({
-        content:
-          "La boutique n'a pas que cela à faire que t'attendre, mais quand tu seras décidé, tu sais où me trouver.",
-        embeds: [],
-        components: [],
-      });
+      if (!shopClosed) {
+        await interaction.editReply({
+          content:
+            "La boutique n'a pas que cela à faire que t'attendre, mais quand tu seras décidé, tu sais où me trouver.",
+          embeds: [],
+          components: [],
+        });
+      }
+
+      activeShops.delete(userId); // ✅ Toujours débloquer à la fin
     });
   },
 };
