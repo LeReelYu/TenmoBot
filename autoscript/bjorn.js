@@ -37,7 +37,7 @@ module.exports = async function bjorn(client) {
           console.error("❌ Erreur lors de l'envoi du message :", error);
         }
       }
-    }, 12000); // Vérification chaque seconde
+    }, 30000); // Vérification chaque seconde
   } catch (error) {
     console.error("❌ Erreur lors de la récupération du salon :", error);
   }
