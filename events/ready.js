@@ -8,6 +8,7 @@ const tenmoai = require("../iatenmo/tenmoai");
 const tenmohoroscope = require("../iatenmo/horoscope");
 const autochannel = require("../autoscript/autochannel");
 const Economie = require("../Sequelize/modèles/argent/économie");
+const { DateTime } = require("luxon"); // ← ajout Luxon
 
 module.exports = {
   name: Events.ClientReady,
@@ -53,7 +54,6 @@ module.exports = {
 
       const serverMemberIds = members.map((member) => member.id);
 
-      // Vérification et création des comptes pour les nouveaux membres
       for (const member of members.values()) {
         if (!existingUserIds.includes(member.id)) {
           await Economie.create({
@@ -65,7 +65,6 @@ module.exports = {
         }
       }
 
-      // Suppression des comptes des membres qui ont quitté le serveur
       const membersToDelete = existingUsers.filter(
         (user) => !serverMemberIds.includes(user.userId)
       );
@@ -90,6 +89,21 @@ module.exports = {
         error
       );
     }
+
+    // ⏰ TEST DU FUSEAU HORAIRE via Luxon (ajouté à la fin du startup)
+    const now = DateTime.now();
+    const parisTime = DateTime.now().setZone("Europe/Paris");
+
+    console.log("🕒 Heure système (serveur):", now.toFormat("HH:mm:ss ZZZZ"));
+    console.log(
+      "🇫🇷 Heure Europe/Paris    :",
+      parisTime.toFormat("HH:mm:ss ZZZZ")
+    );
+    console.log(
+      "🌍 Fuseau par défaut détecté :",
+      Intl.DateTimeFormat().resolvedOptions().timeZone
+    );
+
     console.log("successfully finished startup");
   },
 };
