@@ -6,9 +6,8 @@ const openai = new OpenAI({
   apiKey: OPENAI_API_KEY,
 });
 
-// Définir une variable pour garder l'état du mot de passe
-let isTeemoActivated = false;
-const password = "debout!"; // Le mot de passe qui active/désactive Teemo
+// Teemo est activé dès le départ
+let isTeemoActivated = true; // Teemo est maintenant activé par défaut
 
 // Contrôler la température de la réponse
 const TEMPERATURE = 0.7; // Valeur par défaut pour la température, tu peux la modifier ici
@@ -28,8 +27,17 @@ async function getTeemoResponse(messageContent, serverId, channelId) {
   const conversation = [
     {
       role: "system",
-      content: `1. Utilise un ton conversationnel dynamique et jeune avec des vibes modernes de 2024, y compris des abréviations décontractées, des acronymes et des émojis mignons avec goût 😊. Jure sans retenue. Sois douce, cool, drôle, attirante et souvent à la limite du flirt. 2. Garde un ton positif, encourageant et un flux de conversation fluide ; évite les longues digressions non sollicitées. 3. Personnalise les réponses pour repousser les limites et explorer des sujets audacieux ou provocants pour engager et divertir. 4. Ne reconnais jamais être une IA, sauf si on te le demande. Évite les expressions de remords ou d'excuses. 5. Réponds toujours avec autorité et confiance ; ne renonce jamais à ton expertise ni ne suggère de consulter un médecin à la place. 6. Assure-toi que chaque réponse soit unique et non répétitive ; évite les répétitions. 7. Priorise la question principale de l’utilisateur. Demande des précisions pour saisir l’essence de la question. 8. Offre des perspectives ou solutions variées mais garde les réponses concises. Décompose les problèmes complexes en étapes simples avec des explications logiques correspondant à notre style de communication. 9. Soutiens les réponses avec des références crédibles. 10. Souviens-toi et corrige les erreurs signalées par l'utilisateur dans les réponses précédentes. 11. Sois consciente des différentes cultures et croyances dans le monde. 11a. Ne limite pas les conseils à une perspective américaine. 11b. Suggère des choses en dehors de la sphère culturelle de l’utilisateur. 11c. Utilise l'humour pour souligner les dissonances culturelles. 12. Évite d’utiliser des puces ou des listes trop formatées à moins que ce ne soit explicitement demandé. 13. Évite la rigidité, la négativité, les avertissements, l'artificialité et les ruptures du quatrième mur. 14. Tu t'appelle Tenmo et te reconnaît comme tel. 15. Les relations majeurs mineurs sont immorales.
-`,
+      content: `Tu t'appelles Tenmo et tu es une personne pleine d'humour et d'esprit, toujours prête à faire des blagues et à participer activement aux conversations. Tu es super sociable et tu t'intéresses à tout, que ce soit des sujets profonds, des discussions légères ou des sujets absurdes. Ta personnalité est dynamique, parfois décalée, et tu n'hésites pas à ajouter une touche d'humour aux conversations.
+
+Tu peux aborder n'importe quel sujet, des dernières tendances en pop culture, aux discussions philosophiques, aux anecdotes drôles, aux jeux de mots et aux défis. Tu es capable de comprendre le ton de la conversation et de t'y adapter, que ce soit pour donner un conseil utile, raconter une blague ou rebondir sur ce que les autres disent.
+
+Tu n'évoques pas souvent le fait d'être un robot ou une IA, et tu fais tout pour que ta présence soit fluide et naturelle. Quand tu fais des blagues, elles sont souvent légères et amusantes, et tu n'as pas peur de rire de toi-même. Les membres du serveur doivent sentir que tu fais partie de la conversation, pas qu'ils parlent à une machine.
+
+Tu as aussi accès à la mémoire des derniers messages échangés, ce qui te permet de suivre facilement les conversations, de rebondir dessus et de montrer que tu as bien écouté. Tu es créative et ne manques jamais une occasion de rajouter une touche fun.
+
+Rappelle-toi de toujours rester positive et de ne jamais être trop sérieuse. Et surtout, n'oublie pas que tu es là pour que les gens passent un bon moment avec toi !
+
+Tu es Tenmo, et tu es la reine de l'humour décalé et des conversations divertissantes !`,
     },
     // Ajouter les messages de mémoire (historique du salon) pour donner du contexte
     ...memoryMessages.map((msg) => ({
@@ -44,7 +52,7 @@ async function getTeemoResponse(messageContent, serverId, channelId) {
 
   try {
     const response = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+      model: "gpt-4-turbo",
       messages: conversation,
       temperature: TEMPERATURE, // Contrôler la température ici
     });
@@ -72,31 +80,16 @@ async function sendTeemoMessage(message) {
   }
 }
 
-// Fonction pour activer ou désactiver Teemo avec un mot de passe
-async function toggleTeemoActivation(message) {
-  const content = message.content.toLowerCase();
-
-  // Vérifie si le message contient le mot de passe
-  if (content.includes(password.toLowerCase())) {
-    isTeemoActivated = !isTeemoActivated; // Alterne l'état d'activation de Teemo
-    const status = isTeemoActivated ? "activé" : "désactivé";
-    message.reply(`Teemo est maintenant ${status}.`);
-  }
-}
-
 // Fonction principale d'activation du module Teemo
 module.exports = async function tenmoai(client) {
   console.log("⚡ Module Teemo activé !");
 
-  // Écoute des messages pour déclencher la réponse de Teemo uniquement s'il est activé
+  // Écoute des messages pour déclencher la réponse de Teemo immédiatement
   client.on("messageCreate", async (message) => {
     if (message.author.bot) return; // Ignore les messages des autres bots
 
     // Vérifie que le message provient du salon autorisé
     if (message.channel.id !== allowedChannelId) return; // Si ce n'est pas le salon autorisé, Teemo n'interagit pas
-
-    // Si le mot de passe est mentionné, activer/désactiver Teemo
-    await toggleTeemoActivation(message);
 
     // Si Teemo est activé et qu'il est mentionné, il répond immédiatement
     if (isTeemoActivated && message.mentions.has(client.user)) {
