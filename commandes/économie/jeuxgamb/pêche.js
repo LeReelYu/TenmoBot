@@ -1,6 +1,9 @@
 const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 const Economie = require("../../../Sequelize/modèles/argent/économie");
 
+// Map pour suivre les utilisateurs en train de pêcher
+const activeFishingUsers = new Map();
+
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("peche")
@@ -14,6 +17,18 @@ module.exports = {
         .setRequired(true)
     ),
   async execute(interaction) {
+    const userId = interaction.user.id;
+
+    if (activeFishingUsers.has(userId)) {
+      return interaction.reply({
+        content:
+          "⏳ Tu es déjà en train de pêcher ! Attends que ta session se termine.",
+      });
+    }
+
+    // Marque l'utilisateur comme en train de pêcher
+    activeFishingUsers.set(userId, true);
+
     const messages = [
       "Quelle belle journée pour pêcher !",
       "Les poissons sont de sortie aujourd'hui !",
@@ -50,6 +65,7 @@ module.exports = {
     }
 
     if (!userEconomy || userEconomy.pièces < betAmount) {
+      activeFishingUsers.delete(userId);
       return interaction.reply(
         "Vous n'avez pas assez d'argent pour cette mise. 🛑"
       );
@@ -146,13 +162,14 @@ module.exports = {
               });
 
               hasWon = true;
-
+              activeFishingUsers.delete(userId);
               stopEmbedUpdate();
             } catch (error) {
               console.error("Erreur lors de l'ajout des pièces :", error);
               interaction.followUp(
                 "Une erreur est survenue en ajoutant les pièces."
               );
+              activeFishingUsers.delete(userId);
             }
           });
 
@@ -176,6 +193,7 @@ module.exports = {
                 await userEconomy.save();
               }
 
+              activeFishingUsers.delete(userId);
               stopEmbedUpdate();
             }
           }, 2000);
@@ -204,6 +222,7 @@ module.exports = {
           await userEconomy.save();
         }
 
+        activeFishingUsers.delete(userId);
         stopEmbedUpdate();
       }
     }, 3000);
