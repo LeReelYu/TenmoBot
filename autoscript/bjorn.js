@@ -16,16 +16,12 @@ module.exports = async function bjorn(client) {
     setInterval(async () => {
       if (isPaused) return;
 
-      // Heure locale dans le fuseau "Europe/Paris"
       const now = DateTime.now().setZone("Europe/Paris");
-
       const hours = now.hour.toString().padStart(2, "0");
       const minutes = now.minute.toString().padStart(2, "0");
-      const seconds = now.second;
       const currentTime = `${hours}:${minutes}`;
 
-      // Vérifie si l'heure et les minutes sont identiques (ex: 14:14) et que c'est la première fois à cette minute
-      if (hours === minutes && seconds === 0 && lastSentTime !== currentTime) {
+      if (hours === minutes && lastSentTime !== currentTime) {
         try {
           await channel.send("nez");
           console.log(`✅ Message "nez" envoyé à ${currentTime}`);
@@ -37,12 +33,12 @@ module.exports = async function bjorn(client) {
           setTimeout(() => {
             isPaused = false;
             console.log("▶️ Pause terminée, reprise des vérifications.");
-          }, 20 * 60 * 1000); // 20 minutes de pause
+          }, 20 * 60 * 1000); // 20 minutes
         } catch (error) {
           console.error("❌ Erreur lors de l'envoi du message :", error);
         }
       }
-    }, 30000); // Vérification toutes les 30 secondes
+    }, 60 * 1000); // Vérifie toutes les minutes (et pas 30 secondes)
   } catch (error) {
     console.error("❌ Erreur lors de la récupération du salon :", error);
   }
