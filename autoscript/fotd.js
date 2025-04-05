@@ -1,9 +1,9 @@
 const axios = require("axios");
 const config = require("../config.json");
 
-const CHANNEL_ID = "1332366656428572693"; // ID du salon Discord
-
-let hasSentFactToday = false; // Indicateur pour savoir si le fait du jour a été envoyé
+const CHANNEL_ID = "1332366656428572693";
+let hasSentFactToday = false;
+let lastSentTime = null;
 
 async function getFact() {
   try {
@@ -28,7 +28,7 @@ async function translateToFrench(text) {
       "https://api-free.deepl.com/v2/translate",
       {
         auth_key: config.deepl_api_key,
-        text: [text], // 🔹 Envoyer le texte sous forme de tableau
+        text: [text],
         target_lang: "FR",
       },
       { headers: { "Content-Type": "application/json" } }
@@ -58,7 +58,8 @@ async function sendFactOfTheDay(client) {
     const translatedFact = await translateToFrench(fact);
     await channel.send(`📢 **Le savais-tu ?** ${translatedFact}`);
 
-    hasSentFactToday = true; // Marquer comme envoyé pour la journée
+    hasSentFactToday = true;
+    lastSentTime = new Date().toISOString().slice(0, 16); // yyyy-MM-ddTHH:mm
   } catch (error) {
     console.error("❌ Erreur lors de l'envoi du message :", error);
   }
@@ -67,13 +68,19 @@ async function sendFactOfTheDay(client) {
 module.exports = (client) => {
   console.log("💌 Planification du message quotidien activée !");
 
-  // Vérifier si l'envoi automatique doit être fait à 13h15
   setInterval(async () => {
     const now = new Date();
-    if (now.getHours() === 9 && now.getMinutes() === 5 && !hasSentFactToday) {
+    const currentTime = now.toISOString().slice(11, 16); // HH:mm
+
+    if (
+      now.getHours() === 9 &&
+      now.getMinutes() === 5 &&
+      !hasSentFactToday &&
+      lastSentTime !== currentTime
+    ) {
       await sendFactOfTheDay(client);
     }
-  }, 30 * 1000);
+  }, 60 * 1000); // vérifie chaque minute
 
   // Réinitialisation quotidienne à minuit
   setInterval(() => {

@@ -2,24 +2,27 @@ const { DateTime } = require("luxon");
 const { commitDatabaseFile } = require("../../events/github");
 
 function scheduleCommit() {
-  // Vérification toutes les 30 secondes
+  let lastCommitTime = null;
+
   setInterval(() => {
     const now = DateTime.now().setZone("Europe/Paris");
+    const currentTime = now.toFormat("HH:mm");
 
-    // On regarde si l'heure actuelle est 12:10 ou 00:10
-    if (now.minute === 41 && (now.hour === 12 || now.hour === 0)) {
+    // Vérifie que c’est minuit pile et que le commit n’a pas déjà été envoyé
+    if (now.hour === 0 && now.minute === 0 && lastCommitTime !== currentTime) {
       console.log(
         `⏰ Il est ${now.toFormat("HH:mm:ss")}, lancement du commit !`
       );
-      commitDatabaseFile(); // Remplace avec ta fonction de commit
+      commitDatabaseFile();
+      lastCommitTime = currentTime;
     }
-  }, 1000); // Vérification toutes les 30 secondes
+  }, 60 * 1000); // vérifie chaque minute
 }
 
 // Fonction de commit
 function commitDatabaseFile() {
   console.log("💾 Commit effectué !");
-  // Ici, tu mets la logique de commit pour ta base de données ou ce que tu veux faire
+  // Ta logique de commit ici
 }
 
 // Lancer la planification du commit
