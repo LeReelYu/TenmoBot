@@ -1,7 +1,7 @@
 const { DateTime } = require("luxon");
-const { commitDatabaseFile } = require("../../events/github");
+const { commitDatabaseFile } = require("../events/github");
 
-function scheduleCommit() {
+module.exports = function scheduleCommit() {
   let lastCommitTime = null;
 
   setInterval(() => {
@@ -13,17 +13,8 @@ function scheduleCommit() {
       console.log(
         `⏰ Il est ${now.toFormat("HH:mm:ss")}, lancement du commit !`
       );
-      commitDatabaseFile();
-      lastCommitTime = currentTime;
+      commitDatabaseFile(); // Appelle la fonction pour effectuer le commit
+      lastCommitTime = currentTime; // Met à jour l'heure du dernier commit
     }
   }, 60 * 1000); // vérifie chaque minute
-}
-
-// Fonction de commit
-function commitDatabaseFile() {
-  console.log("💾 Commit effectué !");
-  // Ta logique de commit ici
-}
-
-// Lancer la planification du commit
-scheduleCommit();
+};
