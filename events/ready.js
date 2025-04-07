@@ -8,7 +8,9 @@ const tenmoai = require("../iatenmo/tenmoai");
 const tenmohoroscope = require("../iatenmo/horoscope");
 const autochannel = require("../autoscript/autochannel");
 const Economie = require("../Sequelize/modèles/argent/économie");
-const { DateTime } = require("luxon"); // ← ajout Luxon
+const { DateTime } = require("luxon");
+const { automajbourse } = require("../autoscript/autobourse");
+const scheduleCommit = require("../autoscript/automaj");
 
 module.exports = {
   name: Events.ClientReady,
@@ -22,6 +24,8 @@ module.exports = {
     tenmoai(client);
     tenmohoroscope(client);
     autochannel(client);
+    automajbourse(client);
+    scheduleCommit();
 
     sequelize.sync().then(() => {
       console.log("📦 Base de données synchronisée !");
