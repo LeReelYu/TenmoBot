@@ -48,8 +48,16 @@ module.exports = {
       );
     }
 
-    // Générer une quantité aléatoire de pièces entre 0 et 50
-    const randomAmount = Math.floor(Math.random() * 51);
+    // Chance de 1/1000 d'obtenir 250 pièces d'un coup
+    let randomAmount;
+    let isSpecialReward = false;
+    if (Math.random() < 0.001) {
+      randomAmount = 250; // 1/1000 chance d'obtenir 250 pièces
+      isSpecialReward = true; // Marquer ce cas comme spécial
+    } else {
+      randomAmount = Math.floor(Math.random() * 51); // Sinon entre 0 et 50 pièces
+    }
+
     const user = await Economie.findOne({ where: { userId: userId } });
 
     if (user) {
@@ -70,27 +78,43 @@ module.exports = {
     }
 
     // Créer l'embed de réponse
-    const embed = new EmbedBuilder()
-      .setTitle(`Récompense horaire de ${interaction.user.username}`)
-      .addFields(
-        {
-          name: "💰 Pièces reçues",
-          value: `Tu as gagné **${randomAmount}** pièces !`,
-          inline: true,
-        },
-        {
-          name: "🕰️ Dernière réclamation",
-          value: lastClaimedTime,
-          inline: false,
-        }
-      )
-      .setColor("#00b0f4")
-      .setFooter({
-        text: "Tom Nook",
-        iconURL:
-          "https://pbs.twimg.com/profile_images/1280368407586594817/bUqZkDDU_400x400.jpg",
-      })
-      .setTimestamp();
+    let embed;
+    if (isSpecialReward) {
+      embed = new EmbedBuilder()
+        .setTitle(`🎉 Félicitations ${interaction.user.username}!`)
+        .setDescription(
+          `Tu as eu la chance incroyable de recevoir **250 pièces** d'un coup ! 🥳💰`
+        )
+        .setColor("GOLD") // Embedding doré pour la récompense spéciale
+        .setFooter({
+          text: "Tom Nook",
+          iconURL:
+            "https://pbs.twimg.com/profile_images/1280368407586594817/bUqZkDDU_400x400.jpg",
+        })
+        .setTimestamp();
+    } else {
+      embed = new EmbedBuilder()
+        .setTitle(`Récompense horaire de ${interaction.user.username}`)
+        .addFields(
+          {
+            name: "💰 Pièces reçues",
+            value: `Tu as gagné **${randomAmount}** pièces !`,
+            inline: true,
+          },
+          {
+            name: "🕰️ Dernière réclamation",
+            value: lastClaimedTime,
+            inline: false,
+          }
+        )
+        .setColor("#00b0f4")
+        .setFooter({
+          text: "Tom Nook",
+          iconURL:
+            "https://pbs.twimg.com/profile_images/1280368407586594817/bUqZkDDU_400x400.jpg",
+        })
+        .setTimestamp();
+    }
 
     await interaction.reply({ embeds: [embed] });
   },
