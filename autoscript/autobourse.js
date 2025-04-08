@@ -2,15 +2,12 @@ const { EmbedBuilder } = require("discord.js");
 const { DateTime } = require("luxon");
 const Market = require("../Sequelize/modèles/argent/bourse/Market");
 const Investment = require("../Sequelize/modèles/argent/bourse/Investment");
-const MarketHistory = require("../Sequelize/sequelize");
+const MarketHistory = require("../Sequelize/modèles/argent/bourse/MarketHistory"); // 🛠 Corrigé
 
 // 👇 ID du salon où l'update de la bourse sera envoyé
 const CHANNEL_ID = "1332381214836920380";
 
-// 👇 Modifier cette variable à "oui" ou "non"
-const ACTIVER_BOURSE_AUTO = "non"; // "non" pour désactiver
-
-// Fonction pour mettre à jour le prix du marché
+// Fonction pour mettre à jour le prix du marché (utilisable partout)
 async function updateMarketPrice(client) {
   try {
     let market = await Market.findOne();
@@ -19,10 +16,8 @@ async function updateMarketPrice(client) {
     }
 
     const totalInvested = (await Investment.sum("amountInvested")) || 0;
-
     const randomness = Math.random() * 1.8 - 0.9; // [-0.9, +0.9]
     const changeFactor = 1 + randomness + totalInvested / 1000000;
-
     const newPrice = Math.max(0.01, market.price * changeFactor);
     const changePercent = (
       ((newPrice - market.price) / market.price) *
@@ -32,14 +27,14 @@ async function updateMarketPrice(client) {
     market.price = parseFloat(newPrice.toFixed(4));
     await market.save();
 
-    // ✅ Enregistrer dans l'historique
+    // ✅ Historique
     await MarketHistory.create({
       price: market.price,
       recordedAt: new Date(),
     });
 
     console.log(
-      `💰 Nouveau prix du Maocoin : ${market.price} (${changePercent}%)`
+      `💰 Mise à jour boursière : ${market.price} pièces (${changePercent}%)`
     );
 
     const embed = new EmbedBuilder()
@@ -59,27 +54,27 @@ async function updateMarketPrice(client) {
       );
     }
   } catch (error) {
-    console.error("Erreur lors de la mise à jour du marché : ", error);
+    console.error("❌ Erreur lors de la mise à jour du marché : ", error);
   }
 }
 
-// Fonction pour automatiser la mise à jour de la bourse
+// Fonction pour automatiser la mise à jour toutes les 2 heures
 function automajbourse(client) {
-  try {
-    if (ACTIVER_BOURSE_AUTO.toLowerCase() !== "oui") {
-      console.log("💰 Mise à jour automatique désactivée.");
-      return;
-    }
+  console.log(
+    "⏳ Lancement de la boucle de mise à jour boursière toutes les 2h..."
+  );
 
-    // Appel immédiat + mises à jour toutes les 2h
-    updateMarketPrice(client);
-    setInterval(() => updateMarketPrice(client), 2 * 60 * 60 * 1000);
-  } catch (error) {
-    console.error(
-      "Erreur dans la mise à jour automatique de la bourse : ",
-      error
-    );
-  }
+  setInterval(async () => {
+    console.log("🔁 Déclenchement de la mise à jour boursière planifiée.");
+    try {
+      await updateMarketPrice(client);
+    } catch (err) {
+      console.error("❌ Erreur dans l'intervalle boursier :", err);
+    }
+  }, 2 * 60 * 60 * 1000); // Toutes les 2 heures
 }
 
-module.exports = { automajbourse };
+module.exports = {
+  automajbourse,
+  updateMarketPrice, // ✅ Exportée pour réutilisation dans la commande slash
+};
