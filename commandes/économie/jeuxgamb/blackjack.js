@@ -30,71 +30,26 @@ module.exports = {
       });
     }
 
-    // Création d'un deck simple (valeurs seulement)
-    const deck = [
-      2,
-      3,
-      4,
-      5,
-      6,
-      7,
-      8,
-      9,
-      10,
-      10,
-      10,
-      10,
-      11, // ♠
-      2,
-      3,
-      4,
-      5,
-      6,
-      7,
-      8,
-      9,
-      10,
-      10,
-      10,
-      10,
-      11, // ♥
-      2,
-      3,
-      4,
-      5,
-      6,
-      7,
-      8,
-      9,
-      10,
-      10,
-      10,
-      10,
-      11, // ♦
-      2,
-      3,
-      4,
-      5,
-      6,
-      7,
-      8,
-      9,
-      10,
-      10,
-      10,
-      10,
-      11, // ♣
-    ];
+    // Création d'un deck avec des valeurs réalistes d'un paquet de 52 cartes
+    const deck = [];
 
-    const drawCard = () =>
-      deck.splice(Math.floor(Math.random() * deck.length), 1)[0];
+    const valeurs = [2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10, 11]; // 10 pour J, Q, K ; 11 pour As
+    const couleurs = ["♠", "♥", "♦", "♣"];
 
-    const playerHand = [drawCard(), drawCard()];
-    const dealerHand = [drawCard(), drawCard()];
+    for (const couleur of couleurs) {
+      for (const valeur of valeurs) {
+        deck.push({ valeur, couleur });
+      }
+    }
+
+    const drawCard = () => {
+      const index = Math.floor(Math.random() * deck.length);
+      return deck.splice(index, 1)[0];
+    };
 
     const calcTotal = (hand) => {
-      let total = hand.reduce((a, b) => a + b, 0);
-      let aces = hand.filter((c) => c === 11).length;
+      let total = hand.reduce((a, c) => a + c.valeur, 0);
+      let aces = hand.filter((c) => c.valeur === 11).length;
       while (total > 21 && aces > 0) {
         total -= 10;
         aces--;
@@ -102,10 +57,14 @@ module.exports = {
       return total;
     };
 
+    const displayHand = (hand) =>
+      hand.map((c) => `[${c.couleur}${c.valeur}]`).join(" ");
+
+    const playerHand = [drawCard(), drawCard()];
+    const dealerHand = [drawCard(), drawCard()];
+
     let playerTotal = calcTotal(playerHand);
     let dealerTotal = calcTotal(dealerHand);
-
-    const displayHand = (hand) => hand.map((v) => `[♦${v}]`).join(" ");
 
     const embed = new EmbedBuilder()
       .setColor(0x2ecc71)
@@ -115,7 +74,7 @@ module.exports = {
           name: "Ta main",
           value: `${displayHand(playerHand)} = **${playerTotal}**`,
         },
-        { name: "Main du croupier", value: `[♦${dealerHand[0]}] [?]` }
+        { name: "Main du croupier", value: `[♦${dealerHand[0].valeur}] [?]` }
       )
       .setFooter({ text: "Clique sur Tirer ou Rester." });
 
@@ -156,7 +115,10 @@ module.exports = {
                     name: "Ta main",
                     value: `${displayHand(playerHand)} = **${playerTotal}**`,
                   },
-                  { name: "Main du croupier", value: `[♦${dealerHand[0]}] [?]` }
+                  {
+                    name: "Main du croupier",
+                    value: `[♦${dealerHand[0].valeur}] [?]`,
+                  }
                 )
                 .setColor(0xe74c3c)
                 .setFooter({ text: "💥 Tu as dépassé 21, tu perds !" }),
@@ -171,7 +133,10 @@ module.exports = {
                   name: "Ta main",
                   value: `${displayHand(playerHand)} = **${playerTotal}**`,
                 },
-                { name: "Main du croupier", value: `[♦${dealerHand[0]}] [?]` }
+                {
+                  name: "Main du croupier",
+                  value: `[♦${dealerHand[0].valeur}] [?]`,
+                }
               ),
             ],
           });
