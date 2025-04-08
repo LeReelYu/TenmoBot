@@ -41,16 +41,10 @@ module.exports = {
       }
     }
 
-    // Chance de 90 % de succès
-    if (Math.random() > 0.9) {
-      return interaction.reply(
-        "❌ Tu n'as pas eu de chance cette fois-ci, réessaie plus tard !"
-      );
-    }
-
-    // Chance de 1/1000 d'obtenir 250 pièces d'un coup
+    // Suppression de la chance aléatoire (elle marche toujours)
     let randomAmount;
     let isSpecialReward = false;
+    // Chance de 1/1000 d'obtenir 250 pièces d'un coup
     if (Math.random() < 0.001) {
       randomAmount = 250; // 1/1000 chance d'obtenir 250 pièces
       isSpecialReward = true; // Marquer ce cas comme spécial
