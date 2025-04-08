@@ -176,7 +176,7 @@ async function updateMarketPrice(client) {
 }
 
 function automajbourse(client) {
-  console.log("⏳ Boucle de vérification toutes les 10 minutes...");
+  console.log("⏳ Boucle de vérification toutes les 2 heures...");
 
   setInterval(async () => {
     try {
@@ -195,7 +195,7 @@ function automajbourse(client) {
     } catch (err) {
       console.error("❌ Erreur dans la vérification :", err);
     }
-  }, 10 * 60 * 1000); // toutes les 10 minutes
+  }, 2 * 60 * 60 * 1000); // toutes les 2 heures
 }
 
 module.exports = {

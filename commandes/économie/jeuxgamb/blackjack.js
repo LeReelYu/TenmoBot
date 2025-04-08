@@ -97,8 +97,9 @@ module.exports = {
       withResponse: true,
     });
 
-    // Pour discord.js v14, nous utilisons `interaction.channel.createMessageComponentCollector()`
-    const collector = msg.createMessageComponentCollector({ time: 60000 });
+    const collector = interaction.channel.createMessageComponentCollector({
+      time: 60000,
+    });
 
     collector.on("collect", async (i) => {
       if (i.user.id !== interaction.user.id)
