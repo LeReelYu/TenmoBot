@@ -176,7 +176,7 @@ async function updateMarketPrice(client) {
 }
 
 function automajbourse(client) {
-  console.log("⏳ Boucle de vérification toutes les 20 minutes...");
+  console.log("⏳ Boucle de vérification toutes les 10 minutes...");
 
   setInterval(async () => {
     try {
