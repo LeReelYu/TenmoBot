@@ -3,11 +3,12 @@ const {
   EmbedBuilder,
   MessageFlags,
 } = require("discord.js");
+const { DateTime } = require("luxon"); // Ajouté pour la gestion du temps
 const Market = require("../../../Sequelize/modèles/argent/bourse/Market");
 const Investment = require("../../../Sequelize/modèles/argent/bourse/Investment");
-const Economie = require("../../../Sequelize/modèles/argent/économie"); // Assurez-vous que c'est le bon modèle
+const Economie = require("../../../Sequelize/modèles/argent/économie");
 
-const COLOR = 0xffa500; // Orange
+const COLOR = 0xffa500;
 const GIF_MAIN =
   "https://upload-os-bbs.hoyolab.com/upload/2023/10/15/239582276/709d77d2a814e042dd293e30aa87ae0f_7084346633459396140.gif";
 const GIF_ACTION = "https://honkai.gg/wp-content/uploads/topaz-ultimate.gif";
@@ -28,12 +29,11 @@ module.exports = {
           { name: "Voir mon portefeuille", value: "portfolio" }
         )
     )
-    .addIntegerOption(
-      (option) =>
-        option
-          .setName("montant")
-          .setDescription("Montant fixe à investir")
-          .setRequired(false) // Optionnel pour les actions où le montant n'est pas nécessaire
+    .addIntegerOption((option) =>
+      option
+        .setName("montant")
+        .setDescription("Montant fixe à investir")
+        .setRequired(false)
     ),
 
   async execute(interaction) {
@@ -41,27 +41,23 @@ module.exports = {
     const userId = interaction.user.id;
     const montant = interaction.options.getInteger("montant");
 
-    // Récupérer ou créer un marché avec un prix de départ
     const market =
       (await Market.findOne()) || (await Market.create({ price: 1.0 }));
 
-    // Fonction pour obtenir le solde des pièces de l'utilisateur
     async function getUserBalance(userId) {
       const user = await Economie.findOne({ where: { userId } });
       if (!user) return 0;
-      return user.pièces; // Retourne le solde des pièces
+      return user.pièces;
     }
 
-    // Fonction pour retirer des pièces de l'utilisateur
     async function removeUserBalance(userId, montant) {
       const user = await Economie.findOne({ where: { userId } });
-      if (!user || user.pièces < montant) return false; // Si pas assez de pièces
+      if (!user || user.pièces < montant) return false;
       user.pièces -= montant;
       await user.save();
       return true;
     }
 
-    // Fonction pour ajouter des pièces à l'utilisateur
     async function addUserBalance(userId, montant) {
       const user = await Economie.findOne({ where: { userId } });
       if (!user) return false;
@@ -71,7 +67,6 @@ module.exports = {
     }
 
     if (action === "investir") {
-      // Vérifier si un montant a été spécifié
       if (!montant || montant <= 0) {
         const embed = new EmbedBuilder()
           .setColor(COLOR)
@@ -84,10 +79,8 @@ module.exports = {
         });
       }
 
-      // Récupérer le solde de l'utilisateur en pièces
       const balance = await getUserBalance(userId);
 
-      // Vérifier si l'utilisateur a suffisamment de pièces
       if (balance < montant) {
         const embed = new EmbedBuilder()
           .setColor(COLOR)
@@ -102,7 +95,6 @@ module.exports = {
         });
       }
 
-      // Retirer les pièces de l'utilisateur
       const success = await removeUserBalance(userId, montant);
       if (!success) {
         const embed = new EmbedBuilder()
@@ -116,7 +108,6 @@ module.exports = {
         });
       }
 
-      // Créer un nouvel investissement avec le montant valide
       await Investment.create({
         userId,
         amountInvested: montant,
@@ -136,7 +127,6 @@ module.exports = {
     }
 
     if (action === "retirer") {
-      // Récupérer tous les investissements de l'utilisateur
       const investments = await Investment.findAll({ where: { userId } });
 
       if (investments.length === 0) {
@@ -151,16 +141,14 @@ module.exports = {
       let totalInvested = 0;
       let totalGain = 0;
 
-      // Calculer le total investi et les gains
       for (const inv of investments) {
         totalInvested += inv.amountInvested;
         const ratio = market.price / inv.priceAtInvestment;
         const gain = Math.floor(inv.amountInvested * ratio);
         totalGain += gain;
-        await inv.destroy(); // Supprimer l'investissement une fois le retrait effectué
+        await inv.destroy();
       }
 
-      // Ajouter le total des gains au solde de l'utilisateur
       await addUserBalance(userId, totalGain);
 
       const embed = new EmbedBuilder()
@@ -181,6 +169,23 @@ module.exports = {
           `Le cours actuel est de **${market.price.toFixed(4)} pièces/unité**.`
         )
         .setImage(GIF_MAIN);
+
+      // Ajout du délai avant la prochaine mise à jour
+      const now = DateTime.now();
+      const lastUpdate = DateTime.fromJSDate(market.updatedAt);
+      const nextUpdate = lastUpdate.plus({ hours: 2 });
+      const remaining = nextUpdate.diff(now, ["hours", "minutes"]).toObject();
+
+      let timeRemainingText = "";
+      if (remaining.hours > 0) {
+        timeRemainingText += `${Math.floor(remaining.hours)}h `;
+      }
+      timeRemainingText += `${Math.ceil(remaining.minutes)} min`;
+
+      embed.setFooter({
+        text: `⏳ Prochaine évolution dans ${timeRemainingText}`,
+      });
+
       return interaction.reply({ embeds: [embed] });
     }
 

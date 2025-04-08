@@ -12,7 +12,7 @@ const BANKRUPTCY_DURATION = 4 * 60 * 60 * 1000; // 4h en ms
 const EVENTS = [
   {
     type: "tsunami",
-    impact: -0.4,
+    impact: -0.6,
     message:
       "🌊 Un tsunami a frappé l'île, le prix du Maocoin chute brutalement !",
   },
@@ -71,15 +71,15 @@ async function updateMarketPrice(client) {
     const totalInvested = (await Investment.sum("amountInvested")) || 0;
 
     // 🔁 Nouvelle fluctuation
-    let randomness = Math.random() * 1.8 - 0.9; // Base aléatoire [-0.9, +0.9]
+    let randomness = Math.random() * 1.6 - 0.8; // Base aléatoire [-0.8, +0.8]
 
-    // 🧲 Influence de la tendance
-    if (market.trend === "up")
-      randomness += 0.2 * Math.random(); // Tendance haussière
-    else randomness -= 0.2 * Math.random(); // Tendance baissière
+    // 🧲 Influence de la tendance (plus équilibrée)
+    const trendInfluence = 0.05 * (Math.random() - 0.5); // [-0.025, +0.025]
+    if (market.trend === "up") randomness += trendInfluence;
+    else randomness -= trendInfluence;
 
     // 💸 Impact plus fort de l'investissement
-    const investmentImpact = totalInvested / 250000; // 4x plus sensible qu'avant
+    const investmentImpact = totalInvested / 250000;
     const changeFactor = 1 + randomness + investmentImpact;
 
     let newPrice = parseFloat((market.price * changeFactor).toFixed(4));
