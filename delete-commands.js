@@ -1,8 +1,7 @@
 const { REST, Routes } = require("discord.js");
 const { clientId, guildId, token } = require("./config.json");
 
-const commandId = "1358021624510677093"; // Remplace par l'ID de la commande à supprimer
-
+const commandId = "1353533738750967872"; // Remplace par l'ID de la commande à supprimer
 const rest = new REST().setToken(token);
 
 // Supprime une commande spécifique avec des vérifications

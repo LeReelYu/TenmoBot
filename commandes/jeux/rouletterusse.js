@@ -3,8 +3,8 @@ const RouletteGame = require("../../Sequelize/modèles/russe"); // Importation d
 
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName("roulette")
-    .setDescription("🎲 Vive le gambling !")
+    .setName("roulette-russe")
+    .setDescription("🎲 Vive le gambling avec sa vie !")
     .setDefaultMemberPermissions(PermissionFlagsBits.SendMessages), // Accessible à tous
 
   async execute(interaction) {
