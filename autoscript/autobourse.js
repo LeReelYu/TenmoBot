@@ -183,10 +183,20 @@ function automajbourse(client) {
       const market = await Market.findOne();
       const now = DateTime.now();
 
-      if (
-        !market?.updatedAt ||
-        DateTime.fromJSDate(market.updatedAt).plus({ hours: 2 }) <= now
-      ) {
+      if (!market?.updatedAt) {
+        console.log("🔴 Aucune mise à jour initiale.");
+        return;
+      }
+
+      const lastUpdated = DateTime.fromJSDate(market.updatedAt);
+      const twoHoursAgo = now.minus({ hours: 2 });
+
+      console.log(`⏳ Dernière mise à jour : ${lastUpdated.toISO()}`);
+      console.log(
+        `Vérification si 2h se sont écoulées depuis : ${twoHoursAgo.toISO()}`
+      );
+
+      if (lastUpdated <= twoHoursAgo) {
         console.log("⏰ Mise à jour déclenchée.");
         await updateMarketPrice(client);
       } else {
