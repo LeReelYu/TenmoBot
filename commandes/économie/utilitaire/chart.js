@@ -3,6 +3,9 @@ const { ChartJSNodeCanvas } = require("chartjs-node-canvas");
 const MarketHistory = require("../../../Sequelize/modèles/argent/bourse/MarketHistory");
 const { subDays } = require("date-fns");
 
+// 🔧 Ajout important : adapter Luxon pour le support des dates
+require("chartjs-adapter-luxon");
+
 const width = 800;
 const height = 400;
 const chartJSNodeCanvas = new ChartJSNodeCanvas({ width, height });
@@ -53,7 +56,7 @@ module.exports = {
       options: {
         scales: {
           x: {
-            type: "time",
+            type: "time", // ✅ Nécessite l'adapter
             time: {
               unit: "hour",
               tooltipFormat: "dd/MM/yyyy HH:mm",
