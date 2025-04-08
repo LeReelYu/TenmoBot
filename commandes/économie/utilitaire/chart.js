@@ -1,6 +1,6 @@
 const { SlashCommandBuilder, AttachmentBuilder } = require("discord.js");
 const { ChartJSNodeCanvas } = require("chartjs-node-canvas");
-const MarketHistory = require("../../Sequelize/modèles/argent/bourse/MarketHistory");
+const MarketHistory = require("../../../Sequelize/modèles/argent/bourse/MarketHistory");
 const { subDays } = require("date-fns");
 
 const width = 800;

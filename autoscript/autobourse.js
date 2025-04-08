@@ -39,7 +39,7 @@ async function updateMarketPrice(client) {
     });
 
     console.log(
-      `[BOURSE AUTO] Nouveau prix du Maocoin : ${market.price} (${changePercent}%)`
+      `💰 Nouveau prix du Maocoin : ${market.price} (${changePercent}%)`
     );
 
     const embed = new EmbedBuilder()
@@ -67,7 +67,7 @@ async function updateMarketPrice(client) {
 function automajbourse(client) {
   try {
     if (ACTIVER_BOURSE_AUTO.toLowerCase() !== "oui") {
-      console.log("[BOURSE AUTO] Mise à jour automatique désactivée.");
+      console.log("💰 Mise à jour automatique désactivée.");
       return;
     }
 

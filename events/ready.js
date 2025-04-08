@@ -11,9 +11,7 @@ const Economie = require("../Sequelize/modèles/argent/économie");
 const { DateTime } = require("luxon");
 const { automajbourse } = require("../autoscript/autobourse");
 const scheduleCommit = require("../autoscript/automaj");
-const {
-  resetHistoryScheduler,
-} = require("../Sequelize/modèles/argent/bourse/MarketHistory");
+const { resetHistoryScheduler } = require("../autoscript/resetchart");
 
 module.exports = {
   name: Events.ClientReady,
