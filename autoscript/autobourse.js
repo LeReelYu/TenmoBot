@@ -46,6 +46,8 @@ async function updateMarketPrice(client) {
         market.bankruptcySince = null;
         await market.save();
 
+        await Investment.update({ amountInvested: 0 }, { where: {} }); // Les investissements sont supprimés, logique
+
         const recoveryEmbed = new EmbedBuilder()
           .setColor(0x00ff00)
           .setTitle("🟢 Relance du Maocoin !")
@@ -115,7 +117,7 @@ async function updateMarketPrice(client) {
       // 5% de chance de déclencher un événement
       const event = EVENTS[Math.floor(Math.random() * EVENTS.length)];
 
-      // Si c'est la bénédiction, on mentionne un membre aléatoire
+      // Si c'est la bénédiction, ça monte
       if (event.type === "benediction") {
         const guild = await client.guilds.fetch("TON_GUILD_ID"); // Remplace par l'ID de ton serveur
         const members = await guild.members.fetch();
@@ -193,7 +195,7 @@ function automajbourse(client) {
     } catch (err) {
       console.error("❌ Erreur dans la vérification :", err);
     }
-  }, 20 * 60 * 1000); // toutes les 20 minutes
+  }, 10 * 60 * 1000); // toutes les 10 minutes
 }
 
 module.exports = {
