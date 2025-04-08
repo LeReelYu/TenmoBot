@@ -92,9 +92,10 @@ module.exports = {
     const msg = await interaction.reply({
       embeds: [embed],
       components: [row],
-      withResponse: true,
+      fetchReply: true,
     });
 
+    // Pour discord.js v14, nous utilisons `interaction.channel.createMessageComponentCollector()`
     const collector = msg.createMessageComponentCollector({ time: 60000 });
 
     collector.on("collect", async (i) => {
