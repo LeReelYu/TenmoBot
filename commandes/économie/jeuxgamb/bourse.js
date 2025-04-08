@@ -1,222 +1,202 @@
-const {
-  SlashCommandBuilder,
-  EmbedBuilder,
-  MessageFlags,
-} = require("discord.js");
-const Market = require("../../../Sequelize/modèles/argent/bourse/Market");
-const Investment = require("../../../Sequelize/modèles/argent/bourse/Investment");
-const Economie = require("../../../Sequelize/modèles/argent/économie"); // Assurez-vous que c'est le bon modèle
+const { EmbedBuilder } = require("discord.js");
+const { DateTime } = require("luxon");
+const Market = require("../Sequelize/modèles/argent/bourse/Market");
+const Investment = require("../Sequelize/modèles/argent/bourse/Investment");
+const MarketHistory = require("../Sequelize/modèles/argent/bourse/MarketHistory");
 
-const COLOR = 0xffa500; // Orange
-const GIF_MAIN =
-  "https://upload-os-bbs.hoyolab.com/upload/2023/10/15/239582276/709d77d2a814e042dd293e30aa87ae0f_7084346633459396140.gif";
-const GIF_ACTION = "https://honkai.gg/wp-content/uploads/topaz-ultimate.gif";
+const CHANNEL_ID = "1332381214836920380";
+const BANKRUPTCY_THRESHOLD = -0.5; // Faillite si en-dessous
+const BANKRUPTCY_DURATION = 4 * 60 * 60 * 1000; // 4h en ms
+
+// Événements économiques aléatoires
+const EVENTS = [
+  {
+    type: "tsunami",
+    impact: -0.4,
+    message:
+      "🌊 Un tsunami a frappé l'île, le prix du Maocoin chute brutalement !",
+  },
+  {
+    type: "benediction",
+    impact: 0.3,
+    message: "Mao a ouvert son compte OnlyFans !",
+  },
+];
+
+async function updateMarketPrice(client) {
+  try {
+    let market = await Market.findOne();
+    if (!market) {
+      market = await Market.create({
+        price: 1.0,
+        trend: "up",
+        isInBankruptcy: false,
+        bankruptcySince: null,
+      });
+    }
+
+    // ⛔ Faillite active ?
+    if (market.isInBankruptcy) {
+      const timeSince =
+        DateTime.now() - DateTime.fromJSDate(market.bankruptcySince);
+      if (timeSince >= BANKRUPTCY_DURATION) {
+        // 🔁 Fin de la faillite
+        market.price = 1.0;
+        market.isInBankruptcy = false;
+        market.bankruptcySince = null;
+        await market.save();
+
+        const recoveryEmbed = new EmbedBuilder()
+          .setColor(0x00ff00)
+          .setTitle("🟢 Relance du Maocoin !")
+          .setDescription(
+            "Après une période de faillite, le **Maocoin** redémarre à un prix de **1.0 pièce**."
+          )
+          .setTimestamp();
+
+        const channel = await client.channels.fetch(CHANNEL_ID);
+        if (channel && channel.isTextBased())
+          await channel.send({ embeds: [recoveryEmbed] });
+
+        console.log("✅ Faillite terminée, le cours est revenu à 1.0");
+        return;
+      } else {
+        console.log("⛔ Toujours en faillite, aucune évolution.");
+        return;
+      }
+    }
+
+    const totalInvested = (await Investment.sum("amountInvested")) || 0;
+
+    // 🔁 Nouvelle fluctuation
+    let randomness = Math.random() * 1.8 - 0.9; // Base aléatoire [-0.9, +0.9]
+
+    // 🧲 Influence de la tendance
+    if (market.trend === "up")
+      randomness += 0.2 * Math.random(); // Tendance haussière
+    else randomness -= 0.2 * Math.random(); // Tendance baissière
+
+    // 💸 Impact plus fort de l'investissement
+    const investmentImpact = totalInvested / 250000; // 4x plus sensible qu'avant
+    const changeFactor = 1 + randomness + investmentImpact;
+
+    let newPrice = parseFloat((market.price * changeFactor).toFixed(4));
+    const changePercent = (
+      ((newPrice - market.price) / market.price) *
+      100
+    ).toFixed(2);
+
+    // 📉 Vérifie la faillite
+    if (newPrice <= BANKRUPTCY_THRESHOLD) {
+      market.isInBankruptcy = true;
+      market.bankruptcySince = new Date();
+      await market.save();
+
+      const embed = new EmbedBuilder()
+        .setColor(0xff0000)
+        .setTitle("💥 Faillite du Maocoin !")
+        .setDescription(
+          `Le cours est tombé à **${newPrice}**, ce qui déclenche une **faillite générale**.\n\n` +
+            `💤 Le Maocoin est gelé pour 4h, puis repartira à un taux de base de **1.0**.`
+        )
+        .setTimestamp();
+
+      const channel = await client.channels.fetch(CHANNEL_ID);
+      if (channel && channel.isTextBased())
+        await channel.send({ embeds: [embed] });
+
+      console.log("❌ Faillite du Maocoin !");
+      return;
+    }
+
+    // 🎲 Événements économiques aléatoires
+    const eventChance = Math.random();
+    if (eventChance < 0.05) {
+      // 5% de chance de déclencher un événement
+      const event = EVENTS[Math.floor(Math.random() * EVENTS.length)];
+
+      // Si c'est la bénédiction, on mentionne un membre aléatoire
+      if (event.type === "benediction") {
+        const guild = await client.guilds.fetch("TON_GUILD_ID"); // Remplace par l'ID de ton serveur
+        const members = await guild.members.fetch();
+        const randomMember = members.random();
+        event.message = `${randomMember} a ouvert son compte OnlyFans !`;
+      }
+
+      newPrice = parseFloat((newPrice + event.impact).toFixed(4));
+      const eventEmbed = new EmbedBuilder()
+        .setColor(event.type === "tsunami" ? 0xff0000 : 0x00ff00)
+        .setTitle(
+          event.type === "tsunami" ? "💥 Tsunami !" : "✨ Bénédiction de Mao !"
+        )
+        .setDescription(event.message)
+        .setTimestamp();
+
+      const channel = await client.channels.fetch(CHANNEL_ID);
+      if (channel && channel.isTextBased())
+        await channel.send({ embeds: [eventEmbed] });
+
+      console.log(`🚨 Événement économique déclenché : ${event.message}`);
+    }
+
+    // 📊 Mise à jour du cours et tendance
+    market.trend = newPrice > market.price ? "up" : "down";
+    market.price = newPrice;
+    market.updatedAt = new Date();
+    await market.save();
+
+    await MarketHistory.create({
+      price: market.price,
+      recordedAt: new Date(),
+    });
+
+    const embed = new EmbedBuilder()
+      .setColor(0xffa500)
+      .setTitle("📈 Mise à jour automatique de la Bourse")
+      .setDescription(
+        `Le **nouveau prix** du Maocoin est de **${market.price} pièces**.\n` +
+          `Variation : **${changePercent}%**\n` +
+          `Tendance actuelle : **${
+            market.trend === "up" ? "📈 Haussière" : "📉 Baissière"
+          }**`
+      )
+      .setTimestamp(DateTime.now().toJSDate());
+
+    const channel = await client.channels.fetch(CHANNEL_ID);
+    if (channel && channel.isTextBased()) {
+      await channel.send({ embeds: [embed] });
+    }
+
+    console.log(`💰 Nouveau prix : ${market.price} (${changePercent}%)`);
+  } catch (error) {
+    console.error("❌ Erreur lors de la mise à jour du marché : ", error);
+  }
+}
+
+function automajbourse(client) {
+  console.log("⏳ Boucle de vérification toutes les 20 minutes...");
+
+  setInterval(async () => {
+    try {
+      const market = await Market.findOne();
+      const now = DateTime.now();
+
+      if (
+        !market?.updatedAt ||
+        DateTime.fromJSDate(market.updatedAt).plus({ hours: 2 }) <= now
+      ) {
+        console.log("⏰ Mise à jour déclenchée.");
+        await updateMarketPrice(client);
+      } else {
+        console.log("🕒 Pas encore 2h, en attente...");
+      }
+    } catch (err) {
+      console.error("❌ Erreur dans la vérification :", err);
+    }
+  }, 20 * 60 * 1000); // toutes les 20 minutes
+}
 
 module.exports = {
-  data: new SlashCommandBuilder()
-    .setName("bourse")
-    .setDescription("Gère tes investissements en Maocoin")
-    .addStringOption((option) =>
-      option
-        .setName("action")
-        .setDescription("Choisir une action à effectuer")
-        .setRequired(true)
-        .addChoices(
-          { name: "Investir", value: "investir" },
-          { name: "Retirer", value: "retirer" },
-          { name: "Voir le cours", value: "cours" },
-          { name: "Voir mon portefeuille", value: "portfolio" }
-        )
-    )
-    .addIntegerOption(
-      (option) =>
-        option
-          .setName("montant")
-          .setDescription("Montant fixe à investir")
-          .setRequired(false) // Optionnel pour les actions où le montant n'est pas nécessaire
-    ),
-
-  async execute(interaction) {
-    const action = interaction.options.getString("action");
-    const userId = interaction.user.id;
-    const montant = interaction.options.getInteger("montant");
-
-    // Récupérer ou créer un marché avec un prix de départ
-    const market =
-      (await Market.findOne()) || (await Market.create({ price: 1.0 }));
-
-    // Fonction pour obtenir le solde des pièces de l'utilisateur
-    async function getUserBalance(userId) {
-      const user = await Economie.findOne({ where: { userId } });
-      if (!user) return 0;
-      return user.pièces; // Retourne le solde des pièces
-    }
-
-    // Fonction pour retirer des pièces de l'utilisateur
-    async function removeUserBalance(userId, montant) {
-      const user = await Economie.findOne({ where: { userId } });
-      if (!user || user.pièces < montant) return false; // Si pas assez de pièces
-      user.pièces -= montant;
-      await user.save();
-      return true;
-    }
-
-    // Fonction pour ajouter des pièces à l'utilisateur
-    async function addUserBalance(userId, montant) {
-      const user = await Economie.findOne({ where: { userId } });
-      if (!user) return false;
-      user.pièces += montant;
-      await user.save();
-      return true;
-    }
-
-    if (action === "investir") {
-      // Vérifier si un montant a été spécifié
-      if (!montant || montant <= 0) {
-        const embed = new EmbedBuilder()
-          .setColor(COLOR)
-          .setTitle("💸 Montant invalide")
-          .setDescription("Tu dois spécifier un montant valide pour investir.")
-          .setImage(GIF_ACTION);
-        return interaction.reply({
-          embeds: [embed],
-          flags: MessageFlags.Ephemeral,
-        });
-      }
-
-      // Récupérer le solde de l'utilisateur en pièces
-      const balance = await getUserBalance(userId);
-
-      // Vérifier si l'utilisateur a suffisamment de pièces
-      if (balance < montant) {
-        const embed = new EmbedBuilder()
-          .setColor(COLOR)
-          .setTitle("💸 Fonds insuffisants")
-          .setDescription(
-            "Tu n'as pas assez de pièces pour cet investissement."
-          )
-          .setImage(GIF_ACTION);
-        return interaction.reply({
-          embeds: [embed],
-          flags: MessageFlags.Ephemeral,
-        });
-      }
-
-      // Retirer les pièces de l'utilisateur
-      const success = await removeUserBalance(userId, montant);
-      if (!success) {
-        const embed = new EmbedBuilder()
-          .setColor(COLOR)
-          .setTitle("❌ Erreur")
-          .setDescription("Impossible de retirer tes pièces.")
-          .setImage(GIF_ACTION);
-        return interaction.reply({
-          embeds: [embed],
-          flags: MessageFlags.Ephemeral,
-        });
-      }
-
-      // Créer un nouvel investissement avec le montant valide
-      await Investment.create({
-        userId,
-        amountInvested: montant,
-        priceAtInvestment: market.price,
-      });
-
-      const embed = new EmbedBuilder()
-        .setColor(COLOR)
-        .setTitle("📈 Investissement confirmé")
-        .setDescription(
-          `Tu as investi **${montant} pièces** dans le Maocoin à **${market.price.toFixed(
-            4
-          )} pièces/unité**.`
-        )
-        .setImage(GIF_ACTION);
-      return interaction.reply({ embeds: [embed] });
-    }
-
-    if (action === "retirer") {
-      // Récupérer tous les investissements de l'utilisateur
-      const investments = await Investment.findAll({ where: { userId } });
-
-      if (investments.length === 0) {
-        const embed = new EmbedBuilder()
-          .setColor(COLOR)
-          .setTitle("🫥 Aucun investissement")
-          .setDescription("Tu n’as aucun investissement actif.")
-          .setImage(GIF_ACTION);
-        return interaction.reply({ embeds: [embed] });
-      }
-
-      let totalInvested = 0;
-      let totalGain = 0;
-
-      // Calculer le total investi et les gains
-      for (const inv of investments) {
-        totalInvested += inv.amountInvested;
-        const ratio = market.price / inv.priceAtInvestment;
-        const gain = Math.floor(inv.amountInvested * ratio);
-        totalGain += gain;
-        await inv.destroy(); // Supprimer l'investissement une fois le retrait effectué
-      }
-
-      // Ajouter le total des gains au solde de l'utilisateur
-      await addUserBalance(userId, totalGain);
-
-      const embed = new EmbedBuilder()
-        .setColor(COLOR)
-        .setTitle("💰 Retrait effectué")
-        .setDescription(
-          `Tu as récupéré **${totalGain} pièces** suite à tes investissements.`
-        )
-        .setImage(GIF_ACTION);
-      return interaction.reply({ embeds: [embed] });
-    }
-
-    if (action === "cours") {
-      const embed = new EmbedBuilder()
-        .setColor(COLOR)
-        .setTitle("📊 Cours du Maocoin")
-        .setDescription(
-          `Le cours actuel est de **${market.price.toFixed(4)} pièces/unité**.`
-        )
-        .setImage(GIF_MAIN);
-      return interaction.reply({ embeds: [embed] });
-    }
-
-    if (action === "portfolio") {
-      const investments = await Investment.findAll({ where: { userId } });
-
-      if (investments.length === 0) {
-        const embed = new EmbedBuilder()
-          .setColor(COLOR)
-          .setTitle("🧺 Portefeuille vide")
-          .setDescription("Tu n’as aucun investissement en cours.")
-          .setImage(GIF_MAIN);
-        return interaction.reply({ embeds: [embed] });
-      }
-
-      let totalInvested = 0;
-      let totalCurrent = 0;
-
-      for (const inv of investments) {
-        totalInvested += inv.amountInvested;
-        totalCurrent +=
-          inv.amountInvested * (market.price / inv.priceAtInvestment);
-      }
-
-      const gainLoss = totalCurrent - totalInvested;
-      const status = gainLoss >= 0 ? "📈 Gain" : "📉 Perte";
-      const embed = new EmbedBuilder()
-        .setColor(COLOR)
-        .setTitle("🧾 Ton portefeuille")
-        .setDescription(
-          `**Investi :** ${totalInvested} pièces\n` +
-            `**Valeur actuelle :** ${Math.floor(totalCurrent)} pièces\n` +
-            `**${status} :** ${Math.floor(gainLoss)} pièces`
-        )
-        .setImage(GIF_MAIN);
-      return interaction.reply({ embeds: [embed] });
-    }
-  },
+  automajbourse,
+  updateMarketPrice,
 };
