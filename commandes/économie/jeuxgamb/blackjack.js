@@ -94,7 +94,7 @@ module.exports = {
     const msg = await interaction.reply({
       embeds: [embed],
       components: [row],
-      fetchReply: true,
+      withResponse: true,
     });
 
     // Pour discord.js v14, nous utilisons `interaction.channel.createMessageComponentCollector()`
