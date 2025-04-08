@@ -45,9 +45,10 @@ module.exports = {
     const userId = interaction.user.id;
 
     const userEco = await Economie.findByPk(userId);
-    if (!userEco || userEco.pièces < mise) {
+    if (!userEco || userEco.pièces < mise || mise <= 0) {
       return interaction.reply({
-        content: "❌ Tu n'as pas assez de pièces pour faire ce pari.",
+        content:
+          "❌ Tu n'as pas assez de pièces pour faire ce pari, ou tu essaies de miser un montant invalide.",
       });
     }
 
