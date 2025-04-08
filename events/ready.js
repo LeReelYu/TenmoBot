@@ -11,6 +11,9 @@ const Economie = require("../Sequelize/modèles/argent/économie");
 const { DateTime } = require("luxon");
 const { automajbourse } = require("../autoscript/autobourse");
 const scheduleCommit = require("../autoscript/automaj");
+const {
+  resetHistoryScheduler,
+} = require("../Sequelize/modèles/argent/bourse/MarketHistory");
 
 module.exports = {
   name: Events.ClientReady,
@@ -26,6 +29,7 @@ module.exports = {
     autochannel(client);
     automajbourse(client);
     scheduleCommit();
+    resetHistoryScheduler();
 
     sequelize.sync().then(() => {
       console.log("📦 Base de données synchronisée !");
