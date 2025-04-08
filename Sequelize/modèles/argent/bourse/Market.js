@@ -12,6 +12,18 @@ const Market = sequelize.define("Market", {
     allowNull: false,
     defaultValue: DataTypes.NOW,
   },
+  trend: {
+    type: DataTypes.STRING,
+    defaultValue: "up",
+  },
+  isInBankruptcy: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+  },
+  bankruptcySince: {
+    type: DataTypes.DATE,
+    allowNull: true,
+  },
 });
 
 module.exports = Market;
