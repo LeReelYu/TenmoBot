@@ -5,25 +5,144 @@ const Investment = require("../Sequelize/modèles/argent/bourse/Investment");
 const MarketHistory = require("../Sequelize/modèles/argent/bourse/MarketHistory");
 
 const CHANNEL_ID = "1332381214836920380";
+const BANKRUPTCY_THRESHOLD = -0.5; // Faillite si en-dessous
+const BANKRUPTCY_DURATION = 4 * 60 * 60 * 1000; // 4h en ms
+
+// Événements économiques aléatoires
+const EVENTS = [
+  {
+    type: "tsunami",
+    impact: -0.4,
+    message:
+      "🌊 Un tsunami a frappé l'île, le prix du Maocoin chute brutalement !",
+  },
+  {
+    type: "benediction",
+    impact: 0.3,
+    message: "Mao a ouvert son compte OnlyFans !",
+  },
+];
 
 async function updateMarketPrice(client) {
   try {
     let market = await Market.findOne();
     if (!market) {
-      market = await Market.create({ price: 1.0, lastUpdatedAt: new Date() });
+      market = await Market.create({
+        price: 1.0,
+        trend: "up",
+        isInBankruptcy: false,
+        bankruptcySince: null,
+      });
+    }
+
+    // ⛔ Faillite active ?
+    if (market.isInBankruptcy) {
+      const timeSince =
+        DateTime.now() - DateTime.fromJSDate(market.bankruptcySince);
+      if (timeSince >= BANKRUPTCY_DURATION) {
+        // 🔁 Fin de la faillite
+        market.price = 1.0;
+        market.isInBankruptcy = false;
+        market.bankruptcySince = null;
+        await market.save();
+
+        const recoveryEmbed = new EmbedBuilder()
+          .setColor(0x00ff00)
+          .setTitle("🟢 Relance du Maocoin !")
+          .setDescription(
+            "Après une période de faillite, le **Maocoin** redémarre à un prix de **1.0 pièce**."
+          )
+          .setTimestamp();
+
+        const channel = await client.channels.fetch(CHANNEL_ID);
+        if (channel && channel.isTextBased())
+          await channel.send({ embeds: [recoveryEmbed] });
+
+        console.log("✅ Faillite terminée, le cours est revenu à 1.0");
+        return;
+      } else {
+        console.log("⛔ Toujours en faillite, aucune évolution.");
+        return;
+      }
     }
 
     const totalInvested = (await Investment.sum("amountInvested")) || 0;
-    const randomness = Math.random() * 1.8 - 0.9;
-    const changeFactor = 1 + randomness + totalInvested / 1000000;
-    const newPrice = Math.max(0.01, market.price * changeFactor);
+
+    // 🔁 Nouvelle fluctuation
+    let randomness = Math.random() * 1.8 - 0.9; // Base aléatoire [-0.9, +0.9]
+
+    // 🧲 Influence de la tendance
+    if (market.trend === "up")
+      randomness += 0.2 * Math.random(); // Tendance haussière
+    else randomness -= 0.2 * Math.random(); // Tendance baissière
+
+    // 💸 Impact plus fort de l'investissement
+    const investmentImpact = totalInvested / 250000; // 4x plus sensible qu'avant
+    const changeFactor = 1 + randomness + investmentImpact;
+
+    let newPrice = parseFloat((market.price * changeFactor).toFixed(4));
     const changePercent = (
       ((newPrice - market.price) / market.price) *
       100
     ).toFixed(2);
 
-    market.price = parseFloat(newPrice.toFixed(4));
-    market.updatedAt = new Date(); // 👈 On met à jour la date
+    // 📉 Vérifie la faillite
+    if (newPrice <= BANKRUPTCY_THRESHOLD) {
+      market.isInBankruptcy = true;
+      market.bankruptcySince = new Date();
+      await market.save();
+
+      const embed = new EmbedBuilder()
+        .setColor(0xff0000)
+        .setTitle("💥 Faillite du Maocoin !")
+        .setDescription(
+          `Le cours est tombé à **${newPrice}**, ce qui déclenche une **faillite générale**.\n\n` +
+            `💤 Le Maocoin est gelé pour 4h, puis repartira à un taux de base de **1.0**.`
+        )
+        .setTimestamp();
+
+      const channel = await client.channels.fetch(CHANNEL_ID);
+      if (channel && channel.isTextBased())
+        await channel.send({ embeds: [embed] });
+
+      console.log("❌ Faillite du Maocoin !");
+      return;
+    }
+
+    // 🎲 Événements économiques aléatoires
+    const eventChance = Math.random();
+    if (eventChance < 0.05) {
+      // 5% de chance de déclencher un événement
+      const event = EVENTS[Math.floor(Math.random() * EVENTS.length)];
+
+      // Si c'est la bénédiction, on mentionne un membre aléatoire
+      if (event.type === "benediction") {
+        const guild = await client.guilds.fetch("TON_GUILD_ID"); // Remplace par l'ID de ton serveur
+        const members = await guild.members.fetch();
+        const randomMember = members.random();
+        event.message = `${randomMember} a ouvert son compte OnlyFans !`;
+      }
+
+      newPrice = parseFloat((newPrice + event.impact).toFixed(4));
+      const eventEmbed = new EmbedBuilder()
+        .setColor(event.type === "tsunami" ? 0xff0000 : 0x00ff00)
+        .setTitle(
+          event.type === "tsunami" ? "💥 Tsunami !" : "✨ Bénédiction de Mao !"
+        )
+        .setDescription(event.message)
+        .setTimestamp();
+
+      const channel = await client.channels.fetch(CHANNEL_ID);
+      if (channel && channel.isTextBased())
+        await channel.send({ embeds: [eventEmbed] });
+
+      console.log(`🚨 Événement économique déclenché : ${event.message}`);
+    }
+
+    // 📊 Mise à jour du cours et tendance
+    market.trend = newPrice > market.price ? "up" : "down";
+    market.price = newPrice;
+    market.updatedAt = new Date();
     await market.save();
 
     await MarketHistory.create({
@@ -31,35 +150,31 @@ async function updateMarketPrice(client) {
       recordedAt: new Date(),
     });
 
-    console.log(
-      `💰 Mise à jour boursière : ${market.price} pièces (${changePercent}%)`
-    );
-
     const embed = new EmbedBuilder()
       .setColor(0xffa500)
       .setTitle("📈 Mise à jour automatique de la Bourse")
       .setDescription(
         `Le **nouveau prix** du Maocoin est de **${market.price} pièces**.\n` +
-          `Variation : **${changePercent}%**`
+          `Variation : **${changePercent}%**\n` +
+          `Tendance actuelle : **${
+            market.trend === "up" ? "📈 Haussière" : "📉 Baissière"
+          }**`
       )
       .setTimestamp(DateTime.now().toJSDate());
 
     const channel = await client.channels.fetch(CHANNEL_ID);
     if (channel && channel.isTextBased()) {
       await channel.send({ embeds: [embed] });
-      await channel.send(
-        "📢 La bourse vient d’évoluer, consultez le nouvel état !"
-      );
     }
+
+    console.log(`💰 Nouveau prix : ${market.price} (${changePercent}%)`);
   } catch (error) {
     console.error("❌ Erreur lors de la mise à jour du marché : ", error);
   }
 }
 
 function automajbourse(client) {
-  console.log(
-    "⏳ Lancement de la boucle de vérification toutes les 20 minutes..."
-  );
+  console.log("⏳ Boucle de vérification toutes les 20 minutes...");
 
   setInterval(async () => {
     try {
@@ -70,20 +185,15 @@ function automajbourse(client) {
         !market?.updatedAt ||
         DateTime.fromJSDate(market.updatedAt).plus({ hours: 2 }) <= now
       ) {
-        console.log(
-          "⏰ Plus de 2h depuis la dernière mise à jour, on met à jour !"
-        );
+        console.log("⏰ Mise à jour déclenchée.");
         await updateMarketPrice(client);
       } else {
-        const nextUpdate = DateTime.fromJSDate(market.updatedAt)
-          .plus({ hours: 2 })
-          .toRelative();
-        console.log(`🕒 Prochaine mise à jour dans ${nextUpdate}`);
+        console.log("🕒 Pas encore 2h, en attente...");
       }
     } catch (err) {
-      console.error("❌ Erreur dans la vérification boursière :", err);
+      console.error("❌ Erreur dans la vérification :", err);
     }
-  }, 20 * 60 * 1000); // Toutes les 20 minutes
+  }, 20 * 60 * 1000); // toutes les 20 minutes
 }
 
 module.exports = {
