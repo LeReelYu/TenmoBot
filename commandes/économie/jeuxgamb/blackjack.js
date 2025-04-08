@@ -8,6 +8,8 @@ const {
 } = require("discord.js");
 const Economie = require("../../../Sequelize/modèles/argent/économie");
 
+let canUseBlackjack = true; // Déclare un verrou global temporaire
+
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("blackjack")
@@ -20,24 +22,37 @@ module.exports = {
     ),
 
   async execute(interaction) {
+    // Si la commande est utilisée trop rapidement (moins de 1 seconde d'écart)
+    if (!canUseBlackjack) {
+      return interaction.reply({
+        content:
+          "❌ La commande est temporairement bloquée. Veuillez attendre 1 seconde avant de réessayer.",
+        ephemeral: true,
+      });
+    }
+
+    // Bloque l'utilisation de la commande pendant 1 seconde
+    canUseBlackjack = false;
+    setTimeout(() => {
+      canUseBlackjack = true;
+    }, 1000); // 1 seconde
+
     const mise = interaction.options.getInteger("mise");
     const userId = interaction.user.id;
 
     const userEco = await Economie.findByPk(userId);
-    // Vérification que l'utilisateur a suffisamment de pièces
     if (!userEco || userEco.pièces < mise || mise <= 0) {
+      // Fin de la partie si l'utilisateur n'a pas assez de pièces
       return interaction.reply({
         content:
           "❌ Tu n'as pas assez de pièces pour faire ce pari, ou tu essaies de miser un montant invalide.",
       });
     }
 
-    // Création d'un deck avec des valeurs réalistes d'un paquet de 52 cartes
+    // Code pour générer le deck et les mains comme tu l'avais fait auparavant
     const deck = [];
-
     const valeurs = [2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10, 11]; // 10 pour J, Q, K ; 11 pour As
     const couleurs = ["♠", "♥", "♦", "♣"];
-
     for (const couleur of couleurs) {
       for (const valeur of valeurs) {
         deck.push({ valeur, couleur });
