@@ -2,21 +2,19 @@ const { EmbedBuilder } = require("discord.js");
 const { DateTime } = require("luxon");
 const Market = require("../Sequelize/modèles/argent/bourse/Market");
 const Investment = require("../Sequelize/modèles/argent/bourse/Investment");
-const MarketHistory = require("../Sequelize/modèles/argent/bourse/MarketHistory"); // 🛠 Corrigé
+const MarketHistory = require("../Sequelize/modèles/argent/bourse/MarketHistory");
 
-// 👇 ID du salon où l'update de la bourse sera envoyé
 const CHANNEL_ID = "1332381214836920380";
 
-// Fonction pour mettre à jour le prix du marché (utilisable partout)
 async function updateMarketPrice(client) {
   try {
     let market = await Market.findOne();
     if (!market) {
-      market = await Market.create({ price: 1.0 });
+      market = await Market.create({ price: 1.0, lastUpdatedAt: new Date() });
     }
 
     const totalInvested = (await Investment.sum("amountInvested")) || 0;
-    const randomness = Math.random() * 1.8 - 0.9; // [-0.9, +0.9]
+    const randomness = Math.random() * 1.8 - 0.9;
     const changeFactor = 1 + randomness + totalInvested / 1000000;
     const newPrice = Math.max(0.01, market.price * changeFactor);
     const changePercent = (
@@ -25,9 +23,9 @@ async function updateMarketPrice(client) {
     ).toFixed(2);
 
     market.price = parseFloat(newPrice.toFixed(4));
+    market.updatedAt = new Date(); // 👈 On met à jour la date
     await market.save();
 
-    // ✅ Historique
     await MarketHistory.create({
       price: market.price,
       recordedAt: new Date(),
@@ -58,23 +56,37 @@ async function updateMarketPrice(client) {
   }
 }
 
-// Fonction pour automatiser la mise à jour toutes les 2 heures
 function automajbourse(client) {
   console.log(
-    "⏳ Lancement de la boucle de mise à jour boursière toutes les 2h..."
+    "⏳ Lancement de la boucle de vérification toutes les 20 minutes..."
   );
 
   setInterval(async () => {
-    console.log("🔁 Déclenchement de la mise à jour boursière planifiée.");
     try {
-      await updateMarketPrice(client);
+      const market = await Market.findOne();
+      const now = DateTime.now();
+
+      if (
+        !market?.updatedAt ||
+        DateTime.fromJSDate(market.updatedAt).plus({ hours: 2 }) <= now
+      ) {
+        console.log(
+          "⏰ Plus de 2h depuis la dernière mise à jour, on met à jour !"
+        );
+        await updateMarketPrice(client);
+      } else {
+        const nextUpdate = DateTime.fromJSDate(market.updatedAt)
+          .plus({ hours: 2 })
+          .toRelative();
+        console.log(`🕒 Prochaine mise à jour dans ${nextUpdate}`);
+      }
     } catch (err) {
-      console.error("❌ Erreur dans l'intervalle boursier :", err);
+      console.error("❌ Erreur dans la vérification boursière :", err);
     }
-  }, 2 * 60 * 60 * 1000); // Toutes les 2 heures
+  }, 20 * 60 * 1000); // Toutes les 20 minutes
 }
 
 module.exports = {
   automajbourse,
-  updateMarketPrice, // ✅ Exportée pour réutilisation dans la commande slash
+  updateMarketPrice,
 };
