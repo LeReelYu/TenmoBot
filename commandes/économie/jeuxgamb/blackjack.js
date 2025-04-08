@@ -4,6 +4,7 @@ const {
   ButtonBuilder,
   ButtonStyle,
   EmbedBuilder,
+  MessageFlags,
 } = require("discord.js");
 const Economie = require("../../../Sequelize/modèles/argent/économie");
 
@@ -28,7 +29,6 @@ module.exports = {
       return interaction.reply({
         content:
           "❌ Tu n'as pas assez de pièces pour faire ce pari, ou tu essaies de miser un montant invalide.",
-        ephemeral: true,
       });
     }
 
@@ -102,7 +102,10 @@ module.exports = {
 
     collector.on("collect", async (i) => {
       if (i.user.id !== interaction.user.id)
-        return i.reply({ content: "Ce n'est pas ton jeu !", ephemeral: true });
+        return i.reply({
+          content: "Ce n'est pas ton jeu !",
+          flags: MessageFlags.Ephemeral,
+        });
 
       if (i.customId === "hit") {
         playerHand.push(drawCard());
