@@ -48,7 +48,6 @@ module.exports = {
     if (!userEco || userEco.pièces < mise) {
       return interaction.reply({
         content: "❌ Tu n'as pas assez de pièces pour faire ce pari.",
-        ephemeral: true,
       });
     }
 
@@ -58,8 +57,7 @@ module.exports = {
     ) {
       return interaction.reply({
         content:
-          "❌ Tu dois choisir un **numéro entre 0 et 36** pour ce type de pari.",
-        ephemeral: true,
+          "❌ Tu dois choisir un **numéro entre 0 et 36** dans valeur pour ce type de pari.",
       });
     }
 
