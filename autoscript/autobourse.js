@@ -2,9 +2,13 @@ const { EmbedBuilder } = require("discord.js");
 const { DateTime } = require("luxon");
 const Market = require("../Sequelize/modèles/argent/bourse/Market");
 const Investment = require("../Sequelize/modèles/argent/bourse/Investment");
+const MarketHistory = require("../Sequelize/sequelize");
 
 // 👇 ID du salon où l'update de la bourse sera envoyé
 const CHANNEL_ID = "1332381214836920380";
+
+// 👇 Modifier cette variable à "oui" ou "non"
+const ACTIVER_BOURSE_AUTO = "non"; // "non" pour désactiver
 
 // Fonction pour mettre à jour le prix du marché
 async function updateMarketPrice(client) {
@@ -27,6 +31,12 @@ async function updateMarketPrice(client) {
 
     market.price = parseFloat(newPrice.toFixed(4));
     await market.save();
+
+    // ✅ Enregistrer dans l'historique
+    await MarketHistory.create({
+      price: market.price,
+      recordedAt: new Date(),
+    });
 
     console.log(
       `[BOURSE AUTO] Nouveau prix du Maocoin : ${market.price} (${changePercent}%)`
@@ -56,6 +66,11 @@ async function updateMarketPrice(client) {
 // Fonction pour automatiser la mise à jour de la bourse
 function automajbourse(client) {
   try {
+    if (ACTIVER_BOURSE_AUTO.toLowerCase() !== "oui") {
+      console.log("[BOURSE AUTO] Mise à jour automatique désactivée.");
+      return;
+    }
+
     // Appel immédiat + mises à jour toutes les 2h
     updateMarketPrice(client);
     setInterval(() => updateMarketPrice(client), 2 * 60 * 60 * 1000);
