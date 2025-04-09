@@ -31,6 +31,7 @@ async function updateMarketPrice(client) {
         trend: "up",
         isInBankruptcy: false,
         bankruptcySince: null,
+        consecutiveUpCount: 0, // ✅ nouveau champ
       });
     }
 
@@ -41,6 +42,7 @@ async function updateMarketPrice(client) {
         market.price = 1.0;
         market.isInBankruptcy = false;
         market.bankruptcySince = null;
+        market.consecutiveUpCount = 0; // ✅ reset à la sortie de faillite
         await market.save();
 
         await Investment.update({ amountInvested: 0 }, { where: {} });
@@ -73,7 +75,18 @@ async function updateMarketPrice(client) {
     else randomness -= trendInfluence;
 
     const investmentImpact = totalInvested / 250000;
-    const changeFactor = 1 + randomness + investmentImpact;
+    let changeFactor = 1 + randomness + investmentImpact;
+
+    // ✅ Ajout d'une pression baissière
+    if (market.consecutiveUpCount >= 3) {
+      const downForce = 0.05 * (market.consecutiveUpCount - 5);
+      console.log(
+        `📉 Tendance haussière prolongée (${
+          market.consecutiveUpCount
+        }). Réduction de ${downForce * 100}% appliquée.`
+      );
+      changeFactor -= downForce;
+    }
 
     let newPrice = parseFloat((market.price * changeFactor).toFixed(4));
     const changePercent = (
@@ -84,6 +97,7 @@ async function updateMarketPrice(client) {
     if (newPrice <= BANKRUPTCY_THRESHOLD) {
       market.isInBankruptcy = true;
       market.bankruptcySince = new Date();
+      market.consecutiveUpCount = 0; // ✅ reset en cas de faillite
       await market.save();
 
       const embed = new EmbedBuilder()
@@ -131,6 +145,13 @@ async function updateMarketPrice(client) {
     }
 
     market.trend = newPrice > market.price ? "up" : "down";
+
+    if (market.trend === "up") {
+      market.consecutiveUpCount = (market.consecutiveUpCount || 0) + 1; // ✅ increment
+    } else {
+      market.consecutiveUpCount = 0; // ✅ reset
+    }
+
     market.price = newPrice;
     market.updatedAt = new Date();
     await market.save();
@@ -157,7 +178,9 @@ async function updateMarketPrice(client) {
       await channel.send({ embeds: [embed] });
     }
 
-    console.log(`💰 Nouveau prix : ${market.price} (${changePercent}%)`);
+    console.log(
+      `💰 Nouveau prix : ${market.price} (${changePercent}%) | Tendance : ${market.trend} | Hausses consécutives : ${market.consecutiveUpCount}`
+    );
   } catch (error) {
     console.error("❌ Erreur lors de la mise à jour du marché : ", error);
   }

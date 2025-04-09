@@ -24,6 +24,11 @@ const Market = sequelize.define("Market", {
     type: DataTypes.DATE,
     allowNull: true,
   },
+  consecutiveUpCount: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0,
+    allowNull: false,
+  },
 });
 
 module.exports = Market;
