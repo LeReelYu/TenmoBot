@@ -5,10 +5,9 @@ const Investment = require("../Sequelize/modèles/argent/bourse/Investment");
 const MarketHistory = require("../Sequelize/modèles/argent/bourse/MarketHistory");
 
 const CHANNEL_ID = "1332381214836920380";
-const BANKRUPTCY_THRESHOLD = -0.5; // Faillite si en-dessous
-const BANKRUPTCY_DURATION = 4 * 60 * 60 * 1000; // 4h en ms
+const BANKRUPTCY_THRESHOLD = -0.5;
+const BANKRUPTCY_DURATION = 4 * 60 * 60 * 1000;
 
-// Événements économiques aléatoires
 const EVENTS = [
   {
     type: "tsunami",
@@ -35,18 +34,16 @@ async function updateMarketPrice(client) {
       });
     }
 
-    // ⛔ Faillite active ?
     if (market.isInBankruptcy) {
       const timeSince =
         DateTime.now() - DateTime.fromJSDate(market.bankruptcySince);
       if (timeSince >= BANKRUPTCY_DURATION) {
-        // 🔁 Fin de la faillite
         market.price = 1.0;
         market.isInBankruptcy = false;
         market.bankruptcySince = null;
         await market.save();
 
-        await Investment.update({ amountInvested: 0 }, { where: {} }); // Les investissements sont supprimés, logique
+        await Investment.update({ amountInvested: 0 }, { where: {} });
 
         const recoveryEmbed = new EmbedBuilder()
           .setColor(0x00ff00)
@@ -70,15 +67,11 @@ async function updateMarketPrice(client) {
 
     const totalInvested = (await Investment.sum("amountInvested")) || 0;
 
-    // 🔁 Nouvelle fluctuation
-    let randomness = Math.random() * 1.6 - 0.8; // Base aléatoire [-0.8, +0.8]
-
-    // 🧲 Influence de la tendance (plus équilibrée)
-    const trendInfluence = 0.05 * (Math.random() - 0.5); // [-0.025, +0.025]
+    let randomness = Math.random() * 1.6 - 0.8;
+    const trendInfluence = 0.05 * (Math.random() - 0.5);
     if (market.trend === "up") randomness += trendInfluence;
     else randomness -= trendInfluence;
 
-    // 💸 Impact plus fort de l'investissement
     const investmentImpact = totalInvested / 250000;
     const changeFactor = 1 + randomness + investmentImpact;
 
@@ -88,7 +81,6 @@ async function updateMarketPrice(client) {
       100
     ).toFixed(2);
 
-    // 📉 Vérifie la faillite
     if (newPrice <= BANKRUPTCY_THRESHOLD) {
       market.isInBankruptcy = true;
       market.bankruptcySince = new Date();
@@ -111,15 +103,12 @@ async function updateMarketPrice(client) {
       return;
     }
 
-    // 🎲 Événements économiques aléatoires
     const eventChance = Math.random();
     if (eventChance < 0.05) {
-      // 5% de chance de déclencher un événement
       const event = EVENTS[Math.floor(Math.random() * EVENTS.length)];
 
-      // Si c'est la bénédiction, ça monte
       if (event.type === "benediction") {
-        const guild = await client.guilds.fetch("TON_GUILD_ID"); // Remplace par l'ID de ton serveur
+        const guild = await client.guilds.fetch("TON_GUILD_ID");
         const members = await guild.members.fetch();
         const randomMember = members.random();
         event.message = `${randomMember} a ouvert son compte OnlyFans !`;
@@ -141,7 +130,6 @@ async function updateMarketPrice(client) {
       console.log(`🚨 Événement économique déclenché : ${event.message}`);
     }
 
-    // 📊 Mise à jour du cours et tendance
     market.trend = newPrice > market.price ? "up" : "down";
     market.price = newPrice;
     market.updatedAt = new Date();
@@ -175,8 +163,9 @@ async function updateMarketPrice(client) {
   }
 }
 
+// ✅ VERSION MODIFIÉE : vérifie toutes les minutes + logs détaillés
 function automajbourse(client) {
-  console.log("⏳ Boucle de vérification toutes les minutes...");
+  console.log("⏳ Lancement de la vérification toutes les minutes...");
 
   setInterval(async () => {
     try {
@@ -184,20 +173,21 @@ function automajbourse(client) {
       const now = DateTime.now();
 
       if (!market?.updatedAt) {
-        console.log("🔴 Aucune mise à jour initiale.");
+        console.log("❗ Aucun updatedAt trouvé. Mise à jour immédiate.");
+        await updateMarketPrice(client);
         return;
       }
 
-      const lastUpdated = DateTime.fromJSDate(market.updatedAt);
-      const twoHoursAgo = now.minus({ hours: 2 });
+      const lastUpdate = DateTime.fromJSDate(market.updatedAt);
+      const nextUpdate = lastUpdate.plus({ hours: 2 });
 
-      console.log(`⏳ Dernière mise à jour : ${lastUpdated.toISO()}`);
-      console.log(
-        `Vérification si 2h se sont écoulées depuis : ${twoHoursAgo.toISO()}`
-      );
+      console.log("🔍 Vérification Bourse...");
+      console.log(`🕓 Now            : ${now.toFormat("HH:mm:ss")}`);
+      console.log(`📅 Dernière MAJ  : ${lastUpdate.toFormat("HH:mm:ss")}`);
+      console.log(`⏭️ Prochaine MAJ : ${nextUpdate.toFormat("HH:mm:ss")}`);
 
-      if (lastUpdated <= twoHoursAgo) {
-        console.log("⏰ Mise à jour déclenchée.");
+      if (now >= nextUpdate) {
+        console.log("✅ 2h écoulées, mise à jour déclenchée !");
         await updateMarketPrice(client);
       } else {
         console.log("🕒 Pas encore 2h, en attente...");
@@ -205,7 +195,7 @@ function automajbourse(client) {
     } catch (err) {
       console.error("❌ Erreur dans la vérification :", err);
     }
-  }, 60 * 1000); // vérification toutes les minutes (60 000 ms)
+  }, 60 * 1000); // toutes les minutes
 }
 
 module.exports = {
