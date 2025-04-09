@@ -1,4 +1,4 @@
-const { getChatMemory } = require("../Sequelize/modèles/ia/cerveauteemo"); // Importer la fonction de récupération des messages
+/*const { getChatMemory } = require("../Sequelize/modèles/ia/cerveauteemo"); // Importer la fonction de récupération des messages
 const { OPENAI_API_KEY } = require("../config.json");
 const OpenAI = require("openai");
 
@@ -102,3 +102,4 @@ module.exports = async function tenmoai(client) {
     }
   });
 };
+*/
