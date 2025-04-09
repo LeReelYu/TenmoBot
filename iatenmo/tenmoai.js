@@ -1,4 +1,4 @@
-/*const { getChatMemory } = require("../Sequelize/modèles/ia/cerveauteemo"); // Importer la fonction de récupération des messages
+const { getChatMemory } = require("../Sequelize/modèles/ia/cerveauteemo"); // Importer la fonction de récupération des messages
 const { OPENAI_API_KEY } = require("../config.json");
 const OpenAI = require("openai");
 
@@ -7,7 +7,7 @@ const openai = new OpenAI({
 });
 
 // Teemo est activé dès le départ
-let isTeemoActivated = true; // Teemo est maintenant activé par défaut
+let isTeemoActivated = false; // Teemo est maintenant activé par défaut
 
 // Contrôler la température de la réponse
 const TEMPERATURE = 0.7; // Valeur par défaut pour la température, tu peux la modifier ici
@@ -102,4 +102,3 @@ module.exports = async function tenmoai(client) {
     }
   });
 };
-*/

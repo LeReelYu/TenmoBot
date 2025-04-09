@@ -1,4 +1,4 @@
-/*const OpenAI = require("openai");
+const OpenAI = require("openai");
 const { OPENAI_API_KEY } = require("../config.json");
 
 const openai = new OpenAI({
@@ -129,4 +129,3 @@ module.exports = async function tenmohoroscope(client) {
     console.error("❌ Erreur lors de la récupération du salon :", error);
   }
 };
-*/
