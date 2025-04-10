@@ -136,8 +136,7 @@ module.exports = {
     // Envoie la première page et récupère le message
     const sentMessage = await interaction.reply({
       embeds: [createHelpEmbed(1)],
-      fetchReply: true,
-      ephemeral: true,
+      withResponse: true,
     });
 
     // Ajoute les réactions pour la navigation
@@ -187,14 +186,12 @@ module.exports = {
           content:
             "Commande `/infoutilisateur` :\n" +
             "Cette commande te donnera des informations sur le membre choisi comme la date à laquelle il a rejoint discord, le serveur ou encore son id et sa photo de profil !",
-          ephemeral: true,
         });
       case "infoserveur":
         return interaction.reply({
           content:
             "Commande `/infoserveur` :\n" +
             "Cette commande te donnera des informations sur le serveur comme sa date de création, son nombre de membre, sa bannière ou sa photo de profil !",
-          ephemeral: true,
         });
       case "solde":
         return interaction.reply({
@@ -241,7 +238,6 @@ module.exports = {
       default:
         return interaction.reply({
           content: "Désolé, je ne connais pas cette commande.",
-          ephemeral: true,
         });
     }
   },
