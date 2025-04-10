@@ -15,8 +15,8 @@ const TEMPERATURE = 0.7; // Valeur par défaut pour la température, tu peux la 
 // Chance de réponse de Teemo (1 = 100%, 0.1 = 10%, etc.)
 const RESPONSE_CHANCE = 0.05; // 5% de chance que Teemo réponde à un message d'utilisateur
 
-// ID du salon autorisé pour l'interaction de Teemo (remplace par l'ID de ton salon)
-const allowedChannelId = "1332366656428572693";
+// ID du salon autorisé pour l'interaction de Teemo
+const allowedChannelId = "1352351466328948786";
 
 // Fonction pour générer une réponse avec OpenAI, comme le capitaine Teemo
 async function getTeemoResponse(messageContent, serverId, channelId) {

@@ -80,7 +80,7 @@ async function sendHoroscope(channel) {
 
 // Fonction principale appelée dans le ready.js
 module.exports = async function tenmohoroscope(client) {
-  const channelId = "1332366656428572693"; // Remplacez par l'ID de votre salon Discord
+  const channelId = "1352351466328948786";
 
   try {
     const channel = await client.channels.fetch(channelId);
