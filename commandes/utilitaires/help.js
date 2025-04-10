@@ -158,11 +158,10 @@ module.exports = {
     };
 
     try {
-      // Envoie la première page et récupère le message avec 'withResponse'
-      const sentMessage = await interaction.reply({
+      // Réponse initiale avec l'embed et les boutons
+      await interaction.reply({
         embeds: [createHelpEmbed(1)],
         components: [createNavigationButtons(1)],
-        withResponse: true, // Utilisation de withResponse ici
       });
 
       let currentPage = 1;
@@ -170,7 +169,7 @@ module.exports = {
       // Collecteur de boutons
       const filter = (button) => button.user.id === interaction.user.id;
 
-      const collector = sentMessage.createMessageComponentCollector({
+      const collector = interaction.channel.createMessageComponentCollector({
         filter,
         time: 60000, // Temps en millisecondes (1 minute)
       });
@@ -185,7 +184,7 @@ module.exports = {
         }
 
         // Mettre à jour l'embed et les boutons pour la page suivante
-        await sentMessage.edit({
+        await interaction.editReply({
           embeds: [createHelpEmbed(currentPage)],
           components: [createNavigationButtons(currentPage)],
         });
@@ -193,7 +192,7 @@ module.exports = {
 
       collector.on("end", () => {
         // Retirer tous les boutons lorsque le temps est écoulé
-        sentMessage.edit({
+        interaction.editReply({
           components: [],
         });
       });
