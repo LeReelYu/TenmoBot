@@ -55,12 +55,12 @@ module.exports = {
         .addFields(
           {
             name: "Nombre de champignons",
-            value: `Ce compte contient actuellement ${user.champignons} champignons !`,
+            value: `Ce compte contient actuellement ${user.champignons} <:champignon:1357248272280064070> champignons !`,
             inline: true,
           },
           {
             name: "Nombre de pièces",
-            value: `Ce compte contient actuellement ${user.pièces} pièces !`,
+            value: `Ce compte contient actuellement ${user.pièces} <:bouee:1357248291238318273> pièces !`,
             inline: true,
           },
           {
