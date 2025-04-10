@@ -133,15 +133,16 @@ module.exports = {
       return embed;
     };
 
-    // Envoie la première page
-    const initialEmbed = await interaction.reply({
+    // Envoie la première page et récupère le message
+    const sentMessage = await interaction.reply({
       embeds: [createHelpEmbed(1)],
-      withResponse: true,
+      fetchReply: true,
+      ephemeral: true,
     });
 
     // Ajoute les réactions pour la navigation
-    await initialEmbed.react("⬅️");
-    await initialEmbed.react("➡️");
+    await sentMessage.react("⬅️");
+    await sentMessage.react("➡️");
 
     const filter = (reaction, user) => {
       return (
@@ -150,7 +151,7 @@ module.exports = {
       );
     };
 
-    const collector = initialEmbed.createReactionCollector({
+    const collector = sentMessage.createReactionCollector({
       filter,
       time: 60000, // Temps en millisecondes (1 minute)
     });
@@ -168,13 +169,13 @@ module.exports = {
       }
 
       // Mettre à jour l'embed pour la page suivante
-      await initialEmbed.edit({
+      await sentMessage.edit({
         embeds: [createHelpEmbed(currentPage)],
       });
     });
 
     collector.on("end", () => {
-      initialEmbed.reactions.removeAll(); // Retirer toutes les réactions à la fin
+      sentMessage.reactions.removeAll(); // Retirer toutes les réactions à la fin
     });
   },
 
@@ -186,12 +187,14 @@ module.exports = {
           content:
             "Commande `/infoutilisateur` :\n" +
             "Cette commande te donnera des informations sur le membre choisi comme la date à laquelle il a rejoint discord, le serveur ou encore son id et sa photo de profil !",
+          ephemeral: true,
         });
       case "infoserveur":
         return interaction.reply({
           content:
             "Commande `/infoserveur` :\n" +
             "Cette commande te donnera des informations sur le serveur comme sa date de création, son nombre de membre, sa bannière ou sa photo de profil !",
+          ephemeral: true,
         });
       case "solde":
         return interaction.reply({
@@ -233,78 +236,12 @@ module.exports = {
         return interaction.reply({
           content:
             "Commande `/solde` :\n" +
-            "Cette commande te permet de voir ton compte bancaire.\n Tu y verras tes pièces et tes champignons.\n Les pièces sont une monnaie obtenable avec les commandes de jeux du bot et servent à s'amuser avec lui.\n Les champignons sont monnaie obtenable en event qui permet d'obtenir des objets particuliers dans la boutique itinérante.",
-        });
-      case "transfert":
-        return interaction.reply({
-          content:
-            "Commande `/transfert` :\n" +
-            "Cette commande te permet de transférer une partie de ta monnaie à un autre membre de ton choix dans la mesure du possible.",
-        });
-      case "crime":
-        return interaction.reply({
-          content:
-            "Commande `/crime` :\n" +
-            "Cette commande te permet d'essayer de gagner une bonne quantité d'argent chaque 45 minutes mais tu peux tout autant en perdre",
-        });
-      case "daily":
-        return interaction.reply({
-          content:
-            "Commande `/daily` :\n" +
-            "Cette commande te permet de recevoir une bonne quantité d'argent chaque 24 heures",
-        });
-      case "hourly":
-        return interaction.reply({
-          content:
-            "Commande `/hourly` :\n" +
-            "Cette commande te permet de recevoir une quantité d'argent plus faible que /daily mais chaque heure",
-        });
-      case "blackjack":
-        return interaction.reply({
-          content:
-            "Commande `/blackjack` :\n" +
-            "Cette commande te permet, échange d'une mise de pièces, de jouer au blackjack et de multiplier ta mise selon les règles classiques.",
-        });
-      case "roulette":
-        return interaction.reply({
-          content:
-            "Commande `/roulette` :\n" +
-            "Cette commande te permet, en échange d'une mise de pièces, de jouer à la roulette et de multiplier ta mise selon les règles de la roulette européenne.",
-        });
-      case "peche":
-        return interaction.reply({
-          content:
-            "Commande `/peche` :\n" +
-            "Cette commande te permet, en échange d'une mise de pièces, de jouer à un mini-jeu de pêche dans lequel **si** la goutte d'eau en réaction devient un poisson, tu dois cliquer dessus vite pour obtenir 75% de ta mise.\n Il n'est pas toujours possible qu'apparaisse un poisson, dans ce cas-là la mise est perdue.",
-        });
-      case "vol":
-        return interaction.reply({
-          content:
-            "Commande `/vol` :\n" +
-            "Cette commande te permet d'essayer de voler un membre chaque trois heures.\n Le vol fonctionne sur trois modes qui rapportent plus ou moins mais avec des risques différents d'échouer.\n Si quelqu'un a acheté une protection anti-vol, tu rates à coup sûr ta tentative.",
-        });
-      case "shop":
-        return interaction.reply({
-          content:
-            "Commande `/shop` :\n" +
-            "Cette commande te permet d'ouvrir le magasin Bonajade qui contient pleins d'objets achetable avec des pièces.\n Son contenu est changeant en permanence.",
-        });
-      case "inventaire":
-        return interaction.reply({
-          content:
-            "Commande `/inventaire` :\n" +
-            "Cette commande te permet d'accéder à ton inventaire.\n Ton inventaire contient tous les objets que tu as obtenu notamment du magasin Bonajade.",
-        });
-      case "forceroulette":
-        return interaction.reply({
-          content:
-            "Commande `/forceroulette` :\n" +
-            "Cette commande te permet de forcer une /rouletteglobale sur le membre de ton choix si tu as acheté l'objet forceroulette au préalable.",
+            "Cette commande te permet de voir ton compte bancaire.\n Tu y verras tes pièces et tes champignons.\n Les pièces sont une monnaie obtenable avec les commandes de jeux du bot et servent à s'amuser avec lui.\n Les champignons quant à eux servent à acheter des items ou des accessoires via la boutique.\n Tu peux en obtenir avec des events ou les gagner sur des jeux.",
         });
       default:
         return interaction.reply({
-          content:
-            "Commande inconnue. Utilise `/help` pour voir les commandes disponibles.",
+          content: "Désolé, je ne connais pas cette commande.",
+          ephemeral: true,
         });
     }
   },
