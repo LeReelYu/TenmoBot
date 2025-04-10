@@ -209,66 +209,56 @@ module.exports = {
 
   // Fonction pour afficher l'aide d'une commande spécifique
   async showCommandHelp(interaction, commandName) {
+    let description = "";
+
     switch (commandName.toLowerCase()) {
       case "infoutilisateur":
-        return interaction.reply({
-          content:
-            "Commande `/infoutilisateur` :\n" +
-            "Cette commande te donnera des informations sur le membre choisi comme la date à laquelle il a rejoint discord, le serveur ou encore son id et sa photo de profil !",
-        });
+        description =
+          "Cette commande te donnera des informations sur le membre choisi, telles que la date à laquelle il a rejoint Discord, le serveur, son ID et sa photo de profil !";
+        break;
       case "infoserveur":
-        return interaction.reply({
-          content:
-            "Commande `/infoserveur` :\n" +
-            "Cette commande te donnera des informations sur le serveur comme sa date de création, son nombre de membre, sa bannière ou sa photo de profil !",
-        });
+        description =
+          "Cette commande te donnera des informations sur le serveur, telles que la date de création, le nombre de membres, la bannière ou la photo de profil !";
+        break;
       case "solde":
-        return interaction.reply({
-          content:
-            "Commande `/solde` :\n" +
-            "Cette commande te permet de connaître ton solde bancaire\n Elle te présente ton nombre de pièces (monnaie courante) et de champignons (monnaie d'event) avec un message du banquier temmie",
-        });
+        description =
+          "Cette commande te permet de connaître ton solde bancaire. Elle te montre ton nombre de pièces (monnaie courante) et de champignons (monnaie d'event) avec un message du banquier Temmie.";
+        break;
       case "nude":
-        return interaction.reply({
-          content:
-            "Commande `/nude` :\n" +
-            "Cette commande te permet de recevoir de tenmo une image ou un gif rigolo avec une petite chance que ce soit lui en petite tenue",
-        });
+        description =
+          "Cette commande te permet de recevoir de Tenmo une image ou un gif rigolo avec une petite chance que ce soit lui en petite tenue.";
+        break;
       case "confess":
-        return interaction.reply({
-          content:
-            "Commande `/confess` :\n" +
-            "Cette commande te permet d'envoyer un message anonyme dans le salon spécifique !\n Cela te permet de parler à coeur ouvert sans peur du jugement car personne ne sait qui tu es !\n La commande possède trois formes :\nLa blague, pour plaisanter en anonyme\nLe sérieux, pour tout sujet qui le mérite\nLe vent, pour ouvrir ton sac quand ça ne va pas\nToute confession est entièrement anonyme est intraçable",
-        });
+        description =
+          "Cette commande te permet d'envoyer un message anonyme dans le salon spécifique ! Cela te permet de parler à cœur ouvert sans peur du jugement car personne ne sait qui tu es !";
+        break;
       case "traduction":
-        return interaction.reply({
-          content:
-            "Commande `/traduction` :\n" +
-            "Cette commande te permet de traduire un texte.\nTu n'as qu'à choisir la langue de traduction et noter le message d'origine !",
-        });
+        description =
+          "Cette commande te permet de traduire un texte. Tu n'as qu'à choisir la langue de traduction et noter le message d'origine !";
+        break;
       case "rouletterusse":
-        return interaction.reply({
-          content:
-            "Commande `/rouletterusse` :\n" +
-            "Cette commande te permet de jouer à la roulette russe tout seul.\n Ton arme est un revolver avec 1 balle, à toi de voir jusqu'où tu es prêt à jouer.\n Les balles sont sauvegardées donc chaque choix a une conséquence.",
-        });
+        description =
+          "Cette commande te permet de jouer à la roulette russe tout seul. Ton arme est un revolver avec 1 balle, à toi de voir jusqu'où tu es prêt à jouer. Les balles sont sauvegardées, donc chaque choix a une conséquence.";
+        break;
       case "rouletteglobale":
-        return interaction.reply({
-          content:
-            "Commande `/rouletteglobale` :\n" +
-            "Cette commande te permet de jouer à la roulette avec les autres membres du serveur.\n Donc les balles sont sauvegardées pour tous.\n De plus, le nombre de balles est lui aussi aléatoire à chaque recharge.",
-        });
-      case "solde":
-        return interaction.reply({
-          content:
-            "Commande `/solde` :\n" +
-            "Cette commande te permet de voir ton compte bancaire.\n Tu y verras tes pièces et tes champignons.\n Les pièces sont une monnaie obtenable avec les commandes de jeux du bot et servent à s'amuser avec lui.\n Les champignons quant à eux servent à acheter des items ou des accessoires via la boutique.\n Tu peux en obtenir avec des events ou les gagner sur des jeux.",
-        });
-      // Autres commandes
+        description =
+          "Cette commande te permet de jouer à la roulette avec les autres membres du serveur. Les balles sont sauvegardées pour tous. Le nombre de balles est aléatoire à chaque recharge.";
+        break;
+      case "shop":
+        description =
+          "Cette commande te permet d'accéder au magasin du serveur ! Tu peux acheter des items et des accessoires pour personnaliser ton expérience !";
+        break;
+      // Ajoutez d'autres commandes ici
       default:
-        return interaction.reply({
-          content: "Désolé, je ne connais pas cette commande.",
-        });
+        description = "Désolé, je ne connais pas cette commande.";
+        break;
     }
+
+    const embed = new EmbedBuilder()
+      .setColor("#28a745")
+      .setTitle(`Aide pour la commande : ${commandName}`)
+      .setDescription(description);
+
+    return interaction.reply({ embeds: [embed] });
   },
 };
