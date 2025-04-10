@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, MessageEmbed } = require("discord.js");
+const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -119,7 +119,7 @@ module.exports = {
       const end = start + commandsPerPage;
       const currentCommands = commands.slice(start, end);
 
-      const embed = new MessageEmbed()
+      const embed = new EmbedBuilder()
         .setColor("#28a745")
         .setTitle("Commandes Disponibles")
         .setDescription(
@@ -127,7 +127,7 @@ module.exports = {
             .map((c) => `**${c.name}** - ${c.description}`)
             .join("\n")
         )
-        .setFooter(`Page ${page} / ${totalPages}`)
+        .setFooter({ text: `Page ${page} / ${totalPages}` })
         .setImage("https://giffiles.alphacoders.com/529/52912.gif"); // Gif de l'aide générale
 
       return embed;
@@ -136,8 +136,7 @@ module.exports = {
     // Envoie la première page
     const initialEmbed = await interaction.reply({
       embeds: [createHelpEmbed(1)],
-      fetchReply: true,
-      ephemeral: true,
+      withResponse: true,
     });
 
     // Ajoute les réactions pour la navigation
@@ -187,14 +186,12 @@ module.exports = {
           content:
             "Commande `/infoutilisateur` :\n" +
             "Cette commande te donnera des informations sur le membre choisi comme la date à laquelle il a rejoint discord, le serveur ou encore son id et sa photo de profil !",
-          ephemeral: true,
         });
       case "infoserveur":
         return interaction.reply({
           content:
             "Commande `/infoserveur` :\n" +
             "Cette commande te donnera des informations sur le serveur comme sa date de création, son nombre de membre, sa bannière ou sa photo de profil !",
-          ephemeral: true,
         });
       case "solde":
         return interaction.reply({
@@ -308,7 +305,6 @@ module.exports = {
         return interaction.reply({
           content:
             "Commande inconnue. Utilise `/help` pour voir les commandes disponibles.",
-          ephemeral: true,
         });
     }
   },
