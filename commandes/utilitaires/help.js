@@ -1,4 +1,10 @@
-const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
+const {
+  SlashCommandBuilder,
+  EmbedBuilder,
+  ButtonBuilder,
+  ActionRowBuilder,
+  ButtonStyle,
+} = require("discord.js");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -133,49 +139,73 @@ module.exports = {
       return embed;
     };
 
-    // Envoie la première page et récupère le message
-    const sentMessage = await interaction.reply({
-      embeds: [createHelpEmbed(1)],
-      withResponse: true,
-    });
-
-    // Ajoute les réactions pour la navigation
-    await sentMessage.react("⬅️");
-    await sentMessage.react("➡️");
-
-    const filter = (reaction, user) => {
-      return (
-        ["⬅️", "➡️"].includes(reaction.emoji.name) &&
-        user.id === interaction.user.id
+    // Crée des boutons pour la navigation
+    const createNavigationButtons = (page) => {
+      const buttons = new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+          .setCustomId("previous")
+          .setLabel("⬅️ Précédent")
+          .setStyle(ButtonStyle.Primary)
+          .setDisabled(page === 1), // Désactive si on est à la première page
+        new ButtonBuilder()
+          .setCustomId("next")
+          .setLabel("Suivant ➡️")
+          .setStyle(ButtonStyle.Primary)
+          .setDisabled(page === totalPages) // Désactive si on est à la dernière page
       );
+
+      return buttons;
     };
 
-    const collector = sentMessage.createReactionCollector({
-      filter,
-      time: 60000, // Temps en millisecondes (1 minute)
-    });
-
-    let currentPage = 1;
-
-    collector.on("collect", async (reaction) => {
-      // Retirer la réaction après que l'utilisateur l'ait utilisée
-      await reaction.users.remove(interaction.user.id);
-
-      if (reaction.emoji.name === "➡️" && currentPage < totalPages) {
-        currentPage++;
-      } else if (reaction.emoji.name === "⬅️" && currentPage > 1) {
-        currentPage--;
-      }
-
-      // Mettre à jour l'embed pour la page suivante
-      await sentMessage.edit({
-        embeds: [createHelpEmbed(currentPage)],
+    try {
+      // Envoie la première page et récupère le message avec 'withResponse'
+      const sentMessage = await interaction.reply({
+        embeds: [createHelpEmbed(1)],
+        components: [createNavigationButtons(1)],
+        withResponse: true, // Utilisation de withResponse ici
       });
-    });
 
-    collector.on("end", () => {
-      sentMessage.reactions.removeAll(); // Retirer toutes les réactions à la fin
-    });
+      let currentPage = 1;
+
+      // Collecteur de boutons
+      const filter = (button) => button.user.id === interaction.user.id;
+
+      const collector = sentMessage.createMessageComponentCollector({
+        filter,
+        time: 60000, // Temps en millisecondes (1 minute)
+      });
+
+      collector.on("collect", async (button) => {
+        await button.deferUpdate(); // Confirme la réception du bouton avant la modification
+
+        if (button.customId === "next" && currentPage < totalPages) {
+          currentPage++;
+        } else if (button.customId === "previous" && currentPage > 1) {
+          currentPage--;
+        }
+
+        // Mettre à jour l'embed et les boutons pour la page suivante
+        await sentMessage.edit({
+          embeds: [createHelpEmbed(currentPage)],
+          components: [createNavigationButtons(currentPage)],
+        });
+      });
+
+      collector.on("end", () => {
+        // Retirer tous les boutons lorsque le temps est écoulé
+        sentMessage.edit({
+          components: [],
+        });
+      });
+    } catch (error) {
+      console.error(
+        "Erreur lors de l'envoi du message ou des boutons : ",
+        error
+      );
+      interaction.reply({
+        content: "Une erreur s'est produite lors de l'envoi des informations.",
+      });
+    }
   },
 
   // Fonction pour afficher l'aide d'une commande spécifique
@@ -235,6 +265,7 @@ module.exports = {
             "Commande `/solde` :\n" +
             "Cette commande te permet de voir ton compte bancaire.\n Tu y verras tes pièces et tes champignons.\n Les pièces sont une monnaie obtenable avec les commandes de jeux du bot et servent à s'amuser avec lui.\n Les champignons quant à eux servent à acheter des items ou des accessoires via la boutique.\n Tu peux en obtenir avec des events ou les gagner sur des jeux.",
         });
+      // Autres commandes
       default:
         return interaction.reply({
           content: "Désolé, je ne connais pas cette commande.",
