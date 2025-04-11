@@ -1,8 +1,10 @@
 const { EmbedBuilder } = require("discord.js");
 const { DateTime } = require("luxon");
+const { Op } = require("sequelize");
 const Market = require("../Sequelize/modèles/argent/bourse/Market");
 const Investment = require("../Sequelize/modèles/argent/bourse/Investment");
 const MarketHistory = require("../Sequelize/modèles/argent/bourse/MarketHistory");
+const MarketActionLog = require("../Sequelize/modèles/argent/bourse/MarketActionLog"); // ✅
 
 const CHANNEL_ID = "1332381214836920380";
 const BANKRUPTCY_THRESHOLD = -0.5;
@@ -31,7 +33,7 @@ async function updateMarketPrice(client) {
         trend: "up",
         isInBankruptcy: false,
         bankruptcySince: null,
-        consecutiveUpCount: 0, // ✅ nouveau champ
+        consecutiveUpCount: 0,
       });
     }
 
@@ -42,7 +44,7 @@ async function updateMarketPrice(client) {
         market.price = 1.0;
         market.isInBankruptcy = false;
         market.bankruptcySince = null;
-        market.consecutiveUpCount = 0; // ✅ reset à la sortie de faillite
+        market.consecutiveUpCount = 0;
         await market.save();
 
         await Investment.update({ amountInvested: 0 }, { where: {} });
@@ -69,15 +71,35 @@ async function updateMarketPrice(client) {
 
     const totalInvested = (await Investment.sum("amountInvested")) || 0;
 
+    // ✅ Influence des retraits et investissements récents (via MarketActionLog)
+    const TWO_HOURS_AGO = new Date(Date.now() - 2 * 60 * 60 * 1000);
+
+    const recentActions = await MarketActionLog.findAll({
+      where: {
+        createdAt: { [Op.gte]: TWO_HOURS_AGO },
+      },
+    });
+
+    let recentInvest = 0;
+    let recentRetire = 0;
+
+    for (const action of recentActions) {
+      if (action.action === "invest") recentInvest += action.amount;
+      if (action.action === "retire") recentRetire += action.amount;
+    }
+
+    const investInfluence = (recentInvest / 100000) * 0.1;
+    const retireInfluence = (recentRetire / 100000) * 0.1;
+
     let randomness = Math.random() * 1.6 - 0.8;
     const trendInfluence = 0.05 * (Math.random() - 0.5);
     if (market.trend === "up") randomness += trendInfluence;
     else randomness -= trendInfluence;
 
     const investmentImpact = totalInvested / 250000;
-    let changeFactor = 1 + randomness + investmentImpact;
+    let changeFactor =
+      1 + randomness + investmentImpact + investInfluence - retireInfluence;
 
-    // ✅ Ajout d'une pression baissière
     if (market.consecutiveUpCount >= 3) {
       const downForce = 0.05 * (market.consecutiveUpCount - 5);
       console.log(
@@ -97,7 +119,7 @@ async function updateMarketPrice(client) {
     if (newPrice <= BANKRUPTCY_THRESHOLD) {
       market.isInBankruptcy = true;
       market.bankruptcySince = new Date();
-      market.consecutiveUpCount = 0; // ✅ reset en cas de faillite
+      market.consecutiveUpCount = 0;
       await market.save();
 
       const embed = new EmbedBuilder()
@@ -147,9 +169,9 @@ async function updateMarketPrice(client) {
     market.trend = newPrice > market.price ? "up" : "down";
 
     if (market.trend === "up") {
-      market.consecutiveUpCount = (market.consecutiveUpCount || 0) + 1; // ✅ increment
+      market.consecutiveUpCount = (market.consecutiveUpCount || 0) + 1;
     } else {
-      market.consecutiveUpCount = 0; // ✅ reset
+      market.consecutiveUpCount = 0;
     }
 
     market.price = newPrice;
@@ -186,7 +208,6 @@ async function updateMarketPrice(client) {
   }
 }
 
-// ✅ VERSION MODIFIÉE : vérifie toutes les minutes + logs détaillés
 function automajbourse(client) {
   console.log("⏳ Lancement de la vérification toutes les minutes...");
 
@@ -218,7 +239,7 @@ function automajbourse(client) {
     } catch (err) {
       console.error("❌ Erreur dans la vérification :", err);
     }
-  }, 60 * 1000); // toutes les minutes
+  }, 60 * 1000);
 }
 
 module.exports = {
