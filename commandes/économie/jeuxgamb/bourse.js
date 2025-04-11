@@ -173,7 +173,7 @@ module.exports = {
       // Ajout du délai avant la prochaine mise à jour
       const now = DateTime.now();
       const lastUpdate = DateTime.fromJSDate(market.updatedAt);
-      const nextUpdate = lastUpdate.plus({ hours: 2 });
+      const nextUpdate = lastUpdate.plus({ hours: 1 });
       const remaining = nextUpdate.diff(now, ["hours", "minutes"]).toObject();
 
       let timeRemainingText = "";
