@@ -223,7 +223,7 @@ function automajbourse(client) {
       }
 
       const lastUpdate = DateTime.fromJSDate(market.updatedAt);
-      const nextUpdate = lastUpdate.plus({ hours: 2 });
+      const nextUpdate = lastUpdate.plus({ hours: 1 });
 
       console.log("🔍 Vérification Bourse...");
       console.log(`🕓 Now            : ${now.toFormat("HH:mm:ss")}`);
@@ -231,10 +231,10 @@ function automajbourse(client) {
       console.log(`⏭️ Prochaine MAJ : ${nextUpdate.toFormat("HH:mm:ss")}`);
 
       if (now >= nextUpdate) {
-        console.log("✅ 2h écoulées, mise à jour déclenchée !");
+        console.log("✅ 1h écoulée, mise à jour déclenchée !");
         await updateMarketPrice(client);
       } else {
-        console.log("🕒 Pas encore 2h, en attente...");
+        console.log("🕒 Pas encore 1h, en attente...");
       }
     } catch (err) {
       console.error("❌ Erreur dans la vérification :", err);
