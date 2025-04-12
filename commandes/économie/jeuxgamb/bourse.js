@@ -3,7 +3,7 @@ const {
   EmbedBuilder,
   MessageFlags,
 } = require("discord.js");
-const { DateTime } = require("luxon"); // Ajouté pour la gestion du temps
+const { DateTime } = require("luxon");
 const Market = require("../../../Sequelize/modèles/argent/bourse/Market");
 const Investment = require("../../../Sequelize/modèles/argent/bourse/Investment");
 const Economie = require("../../../Sequelize/modèles/argent/économie");
@@ -40,6 +40,20 @@ module.exports = {
     const action = interaction.options.getString("action");
     const userId = interaction.user.id;
     const montant = interaction.options.getInteger("montant");
+
+    const now = DateTime.now();
+    const hour = now.hour;
+    const isMarketClosed = hour >= 22 || hour < 10;
+
+    if (isMarketClosed && action !== "cours" && action !== "portfolio") {
+      const embed = new EmbedBuilder()
+        .setColor(0xff0000)
+        .setTitle("⛔ Bourse fermée")
+        .setDescription(
+          "La bourse est fermée entre 22h et 10h. Merci de revenir plus tard."
+        );
+      return interaction.reply({ embeds: [embed], ephemeral: true });
+    }
 
     const market =
       (await Market.findOne()) || (await Market.create({ price: 1.0 }));
@@ -170,7 +184,6 @@ module.exports = {
         )
         .setImage(GIF_MAIN);
 
-      // Ajout du délai avant la prochaine mise à jour
       const now = DateTime.now();
       const lastUpdate = DateTime.fromJSDate(market.updatedAt);
       const nextUpdate = lastUpdate.plus({ hours: 1 });

@@ -4,11 +4,12 @@ const { Op } = require("sequelize");
 const Market = require("../Sequelize/modèles/argent/bourse/Market");
 const Investment = require("../Sequelize/modèles/argent/bourse/Investment");
 const MarketHistory = require("../Sequelize/modèles/argent/bourse/MarketHistory");
-const MarketActionLog = require("../Sequelize/modèles/argent/bourse/MarketActionLog"); // ✅
+const MarketActionLog = require("../Sequelize/modèles/argent/bourse/MarketActionLog");
 
 const CHANNEL_ID = "1332381214836920380";
 const BANKRUPTCY_THRESHOLD = -0.5;
 const BANKRUPTCY_DURATION = 4 * 60 * 60 * 1000;
+const MARKET_HOURS = { start: 10, end: 22 }; // De 10h à 22h
 
 const EVENTS = [
   {
@@ -25,6 +26,12 @@ const EVENTS = [
 ];
 
 async function updateMarketPrice(client) {
+  const nowHour = DateTime.now().hour;
+  if (nowHour < MARKET_HOURS.start || nowHour >= MARKET_HOURS.end) {
+    console.log("🚫 Marché fermé, pas de mise à jour.");
+    return;
+  }
+
   try {
     let market = await Market.findOne();
     if (!market) {
@@ -46,7 +53,6 @@ async function updateMarketPrice(client) {
         market.bankruptcySince = null;
         market.consecutiveUpCount = 0;
         await market.save();
-
         await Investment.update({ amountInvested: 0 }, { where: {} });
 
         const recoveryEmbed = new EmbedBuilder()
@@ -70,19 +76,13 @@ async function updateMarketPrice(client) {
     }
 
     const totalInvested = (await Investment.sum("amountInvested")) || 0;
-
-    // ✅ Influence des retraits et investissements récents (via MarketActionLog)
     const TWO_HOURS_AGO = new Date(Date.now() - 2 * 60 * 60 * 1000);
-
     const recentActions = await MarketActionLog.findAll({
-      where: {
-        createdAt: { [Op.gte]: TWO_HOURS_AGO },
-      },
+      where: { createdAt: { [Op.gte]: TWO_HOURS_AGO } },
     });
 
     let recentInvest = 0;
     let recentRetire = 0;
-
     for (const action of recentActions) {
       if (action.action === "invest") recentInvest += action.amount;
       if (action.action === "retire") recentRetire += action.amount;
@@ -90,11 +90,9 @@ async function updateMarketPrice(client) {
 
     const investInfluence = (recentInvest / 100000) * 0.1;
     const retireInfluence = (recentRetire / 100000) * 0.1;
-
-    let randomness = Math.random() * 1.6 - 0.8;
+    let randomness = Math.random() * 0.4 - 0.2; // Variation aléatoire entre -0.2 et +0.2
     const trendInfluence = 0.05 * (Math.random() - 0.5);
-    if (market.trend === "up") randomness += trendInfluence;
-    else randomness -= trendInfluence;
+    randomness += market.trend === "up" ? trendInfluence : -trendInfluence;
 
     const investmentImpact = totalInvested / 250000;
     let changeFactor =
@@ -102,15 +100,15 @@ async function updateMarketPrice(client) {
 
     if (market.consecutiveUpCount >= 3) {
       const downForce = 0.05 * (market.consecutiveUpCount - 5);
-      console.log(
-        `📉 Tendance haussière prolongée (${
-          market.consecutiveUpCount
-        }). Réduction de ${downForce * 100}% appliquée.`
-      );
       changeFactor -= downForce;
     }
 
     let newPrice = parseFloat((market.price * changeFactor).toFixed(4));
+    let maxChange = market.price * (totalInvested > 0 ? 0.3 : 0.2);
+    let minPrice = market.price - maxChange;
+    let maxPrice = market.price + maxChange;
+
+    newPrice = Math.max(minPrice, Math.min(maxPrice, newPrice));
     const changePercent = (
       ((newPrice - market.price) / market.price) *
       100
@@ -134,22 +132,12 @@ async function updateMarketPrice(client) {
       const channel = await client.channels.fetch(CHANNEL_ID);
       if (channel && channel.isTextBased())
         await channel.send({ embeds: [embed] });
-
       console.log("❌ Faillite du Maocoin !");
       return;
     }
 
-    const eventChance = Math.random();
-    if (eventChance < 0.05) {
+    if (Math.random() < 0.05) {
       const event = EVENTS[Math.floor(Math.random() * EVENTS.length)];
-
-      if (event.type === "benediction") {
-        const guild = await client.guilds.fetch("TON_GUILD_ID");
-        const members = await guild.members.fetch();
-        const randomMember = members.random();
-        event.message = `${randomMember} a ouvert son compte OnlyFans !`;
-      }
-
       newPrice = parseFloat((newPrice + event.impact).toFixed(4));
       const eventEmbed = new EmbedBuilder()
         .setColor(event.type === "tsunami" ? 0xff0000 : 0x00ff00)
@@ -158,30 +146,20 @@ async function updateMarketPrice(client) {
         )
         .setDescription(event.message)
         .setTimestamp();
-
       const channel = await client.channels.fetch(CHANNEL_ID);
       if (channel && channel.isTextBased())
         await channel.send({ embeds: [eventEmbed] });
-
-      console.log(`🚨 Événement économique déclenché : ${event.message}`);
+      console.log(`🚨 Événement économique : ${event.message}`);
     }
 
     market.trend = newPrice > market.price ? "up" : "down";
-
-    if (market.trend === "up") {
-      market.consecutiveUpCount = (market.consecutiveUpCount || 0) + 1;
-    } else {
-      market.consecutiveUpCount = 0;
-    }
-
+    market.consecutiveUpCount =
+      market.trend === "up" ? (market.consecutiveUpCount || 0) + 1 : 0;
     market.price = newPrice;
     market.updatedAt = new Date();
     await market.save();
 
-    await MarketHistory.create({
-      price: market.price,
-      recordedAt: new Date(),
-    });
+    await MarketHistory.create({ price: market.price, recordedAt: new Date() });
 
     const embed = new EmbedBuilder()
       .setColor(0xffa500)
@@ -196,9 +174,8 @@ async function updateMarketPrice(client) {
       .setTimestamp(DateTime.now().toJSDate());
 
     const channel = await client.channels.fetch(CHANNEL_ID);
-    if (channel && channel.isTextBased()) {
+    if (channel && channel.isTextBased())
       await channel.send({ embeds: [embed] });
-    }
 
     console.log(
       `💰 Nouveau prix : ${market.price} (${changePercent}%) | Tendance : ${market.trend} | Hausses consécutives : ${market.consecutiveUpCount}`
@@ -213,9 +190,14 @@ function automajbourse(client) {
 
   setInterval(async () => {
     try {
-      const market = await Market.findOne();
       const now = DateTime.now();
+      const hour = now.hour;
+      if (hour < MARKET_HOURS.start || hour >= MARKET_HOURS.end) {
+        console.log("🚫 Marché fermé actuellement (entre 22h et 10h).");
+        return;
+      }
 
+      const market = await Market.findOne();
       if (!market?.updatedAt) {
         console.log("❗ Aucun updatedAt trouvé. Mise à jour immédiate.");
         await updateMarketPrice(client);
@@ -224,12 +206,6 @@ function automajbourse(client) {
 
       const lastUpdate = DateTime.fromJSDate(market.updatedAt);
       const nextUpdate = lastUpdate.plus({ hours: 1 });
-
-      console.log("🔍 Vérification Bourse...");
-      console.log(`🕓 Now            : ${now.toFormat("HH:mm:ss")}`);
-      console.log(`📅 Dernière MAJ  : ${lastUpdate.toFormat("HH:mm:ss")}`);
-      console.log(`⏭️ Prochaine MAJ : ${nextUpdate.toFormat("HH:mm:ss")}`);
-
       if (now >= nextUpdate) {
         console.log("✅ 1h écoulée, mise à jour déclenchée !");
         await updateMarketPrice(client);
