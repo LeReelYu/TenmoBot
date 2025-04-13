@@ -1,6 +1,6 @@
 const { SlashCommandBuilder } = require("discord.js");
-const Inventaire = require("../../../Sequelize/modèles/argent/inventaire");
-const Objets = require("../../../Sequelize/modèles/argent/objets");
+const Inventaire = require("../../../Sequelize/modèles/argent/vente/inventaire");
+const Objets = require("../../../Sequelize/modèles/argent/vente/objets");
 
 module.exports = {
   data: new SlashCommandBuilder()

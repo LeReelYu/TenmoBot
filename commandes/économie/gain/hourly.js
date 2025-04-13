@@ -1,6 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 const Economie = require("../../../Sequelize/modèles/argent/économie");
-const Hourly = require("../../../Sequelize/modèles/argent/cdhourly");
+const Hourly = require("../../../Sequelize/modèles/argent/cooldowns/cdhourly");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -10,7 +10,7 @@ module.exports = {
   async execute(interaction) {
     const userId = interaction.user.id;
     const now = new Date();
-    const oneHour = 60 * 60 * 1000; // 1 heure en millisecondes
+    const oneHour = 60 * 60 * 1000;
 
     let lastClaim = await Hourly.findOne({ where: { userId: userId } });
     let lastClaimedTime = "Jamais";
@@ -41,15 +41,16 @@ module.exports = {
       }
     }
 
-    // Suppression de la chance aléatoire (elle marche toujours)
+    // Calcul du gain
     let randomAmount;
     let isSpecialReward = false;
-    // Chance de 1/1000 d'obtenir 250 pièces d'un coup
-    if (Math.random() < 0.001) {
-      randomAmount = 250; // 1/1000 chance d'obtenir 250 pièces
-      isSpecialReward = true; // Marquer ce cas comme spécial
+
+    // Chance de 1% d'obtenir 450 pièces
+    if (Math.random() < 0.01) {
+      randomAmount = 450;
+      isSpecialReward = true;
     } else {
-      randomAmount = Math.floor(Math.random() * 51); // Sinon entre 0 et 50 pièces
+      randomAmount = Math.floor(Math.random() * 51) + 30; // 30 à 80
     }
 
     const user = await Economie.findOne({ where: { userId: userId } });
@@ -63,7 +64,6 @@ module.exports = {
       );
     }
 
-    // Sauvegarder l'heure de la dernière réclamation
     if (lastClaim) {
       lastClaim.lastClaimed = now;
       await lastClaim.save();
@@ -71,15 +71,14 @@ module.exports = {
       await Hourly.create({ userId: userId, lastClaimed: now });
     }
 
-    // Créer l'embed de réponse
     let embed;
     if (isSpecialReward) {
       embed = new EmbedBuilder()
         .setTitle(`🎉 Félicitations ${interaction.user.username}!`)
         .setDescription(
-          `Tu as eu la chance incroyable de recevoir **250 pièces** d'un coup ! 🥳💰`
+          `Tu as eu la chance incroyable de recevoir **450 pièces** d'un coup ! 🥳💰`
         )
-        .setColor("GOLD") // Embedding doré pour la récompense spéciale
+        .setColor("GOLD")
         .setFooter({
           text: "Tom Nook",
           iconURL:

@@ -1,15 +1,15 @@
 const { DataTypes } = require("sequelize");
-const sequelize = require("../../sequelize"); // Ajustez ce chemin
+const sequelize = require("../../../sequelize");
 
-const Cdvol = sequelize.define("Cdvol", {
+const daily = sequelize.define("daily", {
   userId: {
     type: DataTypes.STRING,
     primaryKey: true,
   },
-  lastAttempt: {
+  lastClaimed: {
     type: DataTypes.DATE,
     allowNull: false,
   },
 });
 
-module.exports = Cdvol;
+module.exports = daily;

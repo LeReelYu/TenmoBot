@@ -1,5 +1,5 @@
 const { DateTime } = require("luxon");
-const { commitDatabaseFile } = require("../events/github");
+const { commitDatabaseFile } = require("../../events/github");
 
 module.exports = function scheduleCommit() {
   let lastCommitTime = null;

@@ -1,17 +1,16 @@
 const { Events, ActivityType } = require("discord.js");
 const config = require("../config.json");
-const autofeur = require("../autoscript/autofeur");
-const bjorn = require("../autoscript/bjorn");
+const autofeur = require("../autoscript/utilitaire/autofeur");
+const bjorn = require("../autoscript/utilitaire/bjorn");
 const sequelize = require("../Sequelize/sequelize");
-const fotd = require("../autoscript/fotd");
+const fotd = require("../autoscript/utilitaire/fotd");
 const tenmoai = require("../iatenmo/tenmoai");
 const tenmohoroscope = require("../iatenmo/horoscope");
-const autochannel = require("../autoscript/autochannel");
+const autochannel = require("../autoscript/utilitaire/autochannel");
 const Economie = require("../Sequelize/modèles/argent/économie");
 const { DateTime } = require("luxon");
-const { automajbourse } = require("../autoscript/autobourse");
-const scheduleCommit = require("../autoscript/automaj");
-const { resetHistoryScheduler } = require("../autoscript/resetchart");
+const { automajbourse } = require("../autoscript/bourse/autobourse");
+const scheduleCommit = require("../autoscript/utilitaire/automaj");
 
 module.exports = {
   name: Events.ClientReady,
@@ -27,7 +26,6 @@ module.exports = {
     autochannel(client);
     automajbourse(client);
     scheduleCommit();
-    resetHistoryScheduler();
 
     sequelize.sync().then(() => {
       console.log("📦 Base de données synchronisée !");
@@ -35,7 +33,7 @@ module.exports = {
 
     const statuses = [
       { name: "son nombre de champignons posés", type: ActivityType.Watching },
-      { name: "placer plus de champignons", type: ActivityType.Playing },
+      { name: "modifie le cours de la bourse", type: ActivityType.Playing },
       { name: "les pleurs des faibles", type: ActivityType.Listening },
     ];
 

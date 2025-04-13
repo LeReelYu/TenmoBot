@@ -1,5 +1,5 @@
 const { DataTypes } = require("sequelize");
-const sequelize = require("../../sequelize"); // Assure-toi que Sequelize est bien configuré et accessible
+const sequelize = require("../../../sequelize");
 
 const Objets = sequelize.define("Objets", {
   name: {

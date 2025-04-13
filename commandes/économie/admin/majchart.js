@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, PermissionFlagsBits } = require("discord.js");
-const { updateMarketPrice } = require("../../../autoscript/autobourse"); // adapte le chemin si besoin
+const { updateMarketPrice } = require("../../../autoscript/bourse/autobourse"); // adapte le chemin si besoin
 
 module.exports = {
   data: new SlashCommandBuilder()

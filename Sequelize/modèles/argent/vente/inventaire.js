@@ -1,11 +1,11 @@
 const { DataTypes } = require("sequelize");
-const sequelize = require("../../sequelize"); // Assure-toi que Sequelize est bien configuré et accessible
-const Objets = require("./objets"); // Importation du modèle des objets
+const sequelize = require("../../../sequelize");
+const Objets = require("./objets");
 
 const Inventaire = sequelize.define("Inventaire", {
   userId: {
     type: DataTypes.STRING,
-    allowNull: false, // L'ID de l'utilisateur est requis
+    allowNull: false,
   },
   itemId: {
     type: DataTypes.INTEGER,

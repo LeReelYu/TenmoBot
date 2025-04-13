@@ -7,8 +7,8 @@ const {
   MessageFlags,
 } = require("discord.js");
 const Economie = require("../../../Sequelize/modèles/argent/économie");
-const Cdvol = require("../../../Sequelize/modèles/argent/cdvol");
-const Inventaire = require("../../../Sequelize/modèles/argent/inventaire"); // Ajout du modèle d'inventaire
+const Cdvol = require("../../../Sequelize/modèles/argent/cooldowns/cdvol");
+const Inventaire = require("../../../Sequelize/modèles/argent/vente/inventaire");
 
 module.exports = {
   data: new SlashCommandBuilder()

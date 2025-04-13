@@ -1,5 +1,5 @@
 const axios = require("axios");
-const config = require("../config.json");
+const config = require("../../config.json");
 
 const CHANNEL_ID = "1332366656428572693";
 let hasSentFactToday = false;

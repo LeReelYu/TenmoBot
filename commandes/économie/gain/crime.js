@@ -1,6 +1,6 @@
 const { SlashCommandBuilder } = require("discord.js");
 const Economie = require("../../../Sequelize/modèles/argent/économie");
-const CooldownCrime = require("../../../Sequelize/modèles/argent/cdcrime");
+const CooldownCrime = require("../../../Sequelize/modèles/argent/cooldowns/cdcrime");
 
 const COOLDOWN_TIME = 30 * 60 * 1000; // 30 minutes en ms
 
@@ -44,11 +44,11 @@ module.exports = {
     let resultMessage = "";
 
     if (success) {
-      const gain = Math.floor(Math.random() * 151) + 50; // 50 à 200 pièces
+      const gain = Math.floor(Math.random() * 751) + 250; // 250 à 1000 pièces
       userEco.pièces += gain;
       resultMessage = `🔫 Tu as réussi ton crime et gagné **${gain}** pièces ! 🤑`;
     } else {
-      const loss = Math.floor(Math.random() * 151) + 50; // 50 à 200 pièces
+      const loss = Math.floor(Math.random() * 751) + 250; // 250 à 1000 pièces
       userEco.pièces -= loss;
       resultMessage = `🚓 Tu t’es fait choper ! Tu perds **${loss}** pièces... 😬`;
     }

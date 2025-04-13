@@ -3,14 +3,13 @@ const {
   ActionRowBuilder,
   StringSelectMenuBuilder,
   EmbedBuilder,
-  ButtonBuilder,
-  ButtonStyle,
+  MessageFlags,
 } = require("discord.js");
-const Objets = require("../../../Sequelize/modèles/argent/objets");
-const Economie = require("../../../Sequelize/modèles/argent/économie"); // Modèle de l'économie
-const Inventaire = require("../../../Sequelize/modèles/argent/inventaire"); // Modèle de l'inventaire
+const Objets = require("../../../Sequelize/modèles/argent/vente/objets");
+const Economie = require("../../../Sequelize/modèles/argent/économie");
+const Inventaire = require("../../../Sequelize/modèles/argent/vente/inventaire");
 
-// Liste de phrases aléatoires pour ajouter un peu de fun
+// Liste de phrases aléatoires
 const randomPhrases = [
   "Bonjour, je m'appelle Jade. Tu m'as appelée. Si tu veux un prêt, tu dois d'abord mettre en gage un bien de valeur équivalente. Ta dignité, tes sentiments, ou même ta vie. Qu'est-ce que tu as à me proposer en échange ?",
   "Tu te sens perdu/perdue ? Ne t'en fais pas, on peut parler de ce que tu veux.",
@@ -26,7 +25,7 @@ const activeShops = new Set();
 // Suivi du cooldown des utilisateurs
 const lastUsed = new Map();
 
-const COOLDOWN_TIME = 10000; // 20 secondes en millisecondes
+const COOLDOWN_TIME = 5000;
 
 function getRandomPhrase() {
   return randomPhrases[Math.floor(Math.random() * randomPhrases.length)];
@@ -52,7 +51,7 @@ module.exports = {
       );
       return interaction.reply({
         content: `Tu dois attendre encore ${timeLeft} seconde(s) avant de pouvoir utiliser la commande à nouveau.`,
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
     }
 
@@ -64,7 +63,7 @@ module.exports = {
       return interaction.reply({
         content:
           "Tu es déjà en train de discuter avec Jade. Termine cette transaction d'abord...",
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
     }
 
@@ -144,7 +143,7 @@ module.exports = {
         if (!item) {
           return i.reply({
             content: "Cet objet n'existe pas.",
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
           });
         }
 
@@ -155,7 +154,7 @@ module.exports = {
         if (!userEconomy) {
           return i.reply({
             content: "Tu n'as pas de compte... Comme c'est curieux",
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
           });
         }
 

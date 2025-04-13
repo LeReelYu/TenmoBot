@@ -1,6 +1,6 @@
 const { SlashCommandBuilder } = require("discord.js");
 const Economie = require("../../Sequelize/modèles/argent/économie");
-const daily = require("../../Sequelize/modèles/argent/daily");
+const daily = require("../../Sequelize/modèles/argent/cooldowns/daily");
 
 module.exports = {
   data: new SlashCommandBuilder()

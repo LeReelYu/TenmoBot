@@ -1,7 +1,7 @@
 const { SlashCommandBuilder } = require("@discordjs/builders");
 const { PermissionFlagsBits } = require("discord.js");
-const Objets = require("../../../Sequelize/modèles/argent/objets"); // Modèle Item
-const Inventaire = require("../../../Sequelize/modèles/argent/inventaire"); // Modèle Inventaire
+const Objets = require("../../../Sequelize/modèles/argent/vente/objets"); // Modèle Item
+const Inventaire = require("../../../Sequelize/modèles/argent/vente/inventaire"); // Modèle Inventaire
 
 module.exports = {
   data: new SlashCommandBuilder()

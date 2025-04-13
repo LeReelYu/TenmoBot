@@ -1,6 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 const Economie = require("../../../Sequelize/modèles/argent/économie");
-const daily = require("../../../Sequelize/modèles/argent/daily");
+const daily = require("../../../Sequelize/modèles/argent/cooldowns/daily");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -10,14 +10,13 @@ module.exports = {
   async execute(interaction) {
     const userId = interaction.user.id;
 
-    // Vérifier si l'utilisateur a réclamé son argent aujourd'hui
     let lastClaim = await daily.findOne({ where: { userId: userId } });
 
     const now = new Date();
     const yesterday = new Date(now);
     yesterday.setDate(now.getDate() - 1);
 
-    let lastClaimedTime = "Jamais"; // Valeur par défaut si l'utilisateur n'a jamais réclamé
+    let lastClaimedTime = "Jamais";
 
     if (lastClaim) {
       lastClaimedTime = new Date(lastClaim.lastClaimed).toLocaleString(
@@ -39,17 +38,17 @@ module.exports = {
       }
     }
 
-    // Chance de 1/10000 d'obtenir 1000 pièces
+    // Chance de 1/12000 d'obtenir 3500 pièces
     let randomAmount;
     let isSpecialReward = false;
-    if (Math.random() < 0.0001) {
-      randomAmount = 1000; // 1/10000 chance d'obtenir 1000 pièces
-      isSpecialReward = true; // Marquer ce cas comme spécial
+
+    if (Math.random() < 1 / 12000) {
+      randomAmount = 3500;
+      isSpecialReward = true;
     } else {
-      randomAmount = Math.floor(Math.random() * 250) + 1; // Sinon entre 1 et 250 pièces
+      randomAmount = Math.floor(Math.random() * 551) + 100; // 100 à 650
     }
 
-    // Ajouter des pièces à l'utilisateur
     const user = await Economie.findOne({ where: { userId: userId } });
 
     if (user) {
@@ -61,7 +60,6 @@ module.exports = {
       );
     }
 
-    // Sauvegarder l'heure de la dernière réclamation
     if (lastClaim) {
       lastClaim.lastClaimed = now;
       await lastClaim.save();
@@ -69,15 +67,14 @@ module.exports = {
       await daily.create({ userId: userId, lastClaimed: now });
     }
 
-    // Créer l'embed de réponse
     let embed;
     if (isSpecialReward) {
       embed = new EmbedBuilder()
         .setTitle(`🎉 Félicitations ${interaction.user.username}!`)
         .setDescription(
-          `Tu as eu la chance incroyable de recevoir **1000 pièces** d'un coup ! 🥳💰`
+          `Tu as eu la chance incroyable de recevoir **3500 pièces** d'un coup ! 🥳💰`
         )
-        .setColor("GOLD") // Embedding doré pour la récompense spéciale
+        .setColor("GOLD")
         .setFooter({
           text: "Tom Nook",
           iconURL:
