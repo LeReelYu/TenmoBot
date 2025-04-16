@@ -1,4 +1,3 @@
-// /commands/économie/bulle.js
 const {
   SlashCommandBuilder,
   EmbedBuilder,
@@ -11,13 +10,14 @@ const BulleUpgrade = require("../../../Sequelize/modèles/argent/bulle/BubbleUpg
 const Economie = require("../../../Sequelize/modèles/argent/économie");
 const {
   upgrade,
-  upgrades,
+  getAllUpgradeChoices,
 } = require("../../../autoscript/autobulle/upgradeManager");
 const {
   collect,
   convert,
+  click,
 } = require("../../../autoscript/autobulle/bubbleEconomy");
-const visuals = require("../../../utils/visuelsEntreprises");
+const visuals = require("../../../autoscript/autobulle/visuelsentreprise");
 
 const ENTREPRISE_TIERS = {
   "à la sauvette": 1,
@@ -52,6 +52,11 @@ module.exports = {
     )
     .addSubcommand((sub) =>
       sub.setName("convert").setDescription("Convertir tes bulles en pièces")
+    )
+    .addSubcommand((sub) =>
+      sub
+        .setName("click")
+        .setDescription("Clique pour générer des bulles activement")
     )
     .addSubcommand((sub) =>
       sub.setName("upgrade").setDescription("Ouvre la boutique d'améliorations")
@@ -128,6 +133,23 @@ module.exports = {
       return interaction.reply({ embeds: [embed] });
     }
 
+    if (sub === "click") {
+      const user = await BulleUser.findByPk(userId);
+      if (!user) return interaction.reply("Tu n'as pas encore de licence.");
+      const vis = {
+        ...visuals[user.businessType],
+        ...visuals[user.entreprise],
+      };
+      const amount = await click(userId);
+      const embed = new EmbedBuilder()
+        .setTitle(`${vis.emoji} | Clique !`)
+        .setDescription(`🖱️ Tu as gagné **${amount}** bulles en cliquant !`)
+        .setColor(vis.color)
+        .setThumbnail(vis.icon)
+        .setFooter({ text: "Clique encore pour générer plus de bulles !" });
+      return interaction.reply({ embeds: [embed] });
+    }
+
     if (sub === "convert") {
       const user = await BulleUser.findByPk(userId);
       const vis = {
@@ -148,20 +170,24 @@ module.exports = {
       const user = await BulleUser.findByPk(userId);
       if (!user) return interaction.reply("Tu n'as pas encore de commerce.");
 
-      const options = Object.entries(upgrades).map(
-        ([name, { baseCost, effect }]) => {
-          const userUpgrade = user.BulleUpgrades?.find(
-            (u) => u.upgradeName === name
-          );
-          const level = userUpgrade ? userUpgrade.level : 0;
-          const cost = baseCost * (level + 1);
-          return {
-            label: `${name} (niv ${level})`,
-            description: `Effet: +${effect} | Coût: ${cost} bulles`,
-            value: name,
-          };
-        }
-      );
+      const entrepriseData =
+        require("../../../autoscript/autobulle/entreprises")[user.entreprise];
+      if (!entrepriseData) return interaction.reply("Entreprise invalide.");
+
+      const upgradesAvailable = Object.entries(entrepriseData.upgrades);
+
+      const userUpgrades = await BulleUpgrade.findAll({ where: { userId } });
+
+      const options = upgradesAvailable.map(([name, { baseCost, effect }]) => {
+        const userUpgrade = userUpgrades.find((u) => u.upgradeName === name);
+        const level = userUpgrade ? userUpgrade.level : 0;
+        const cost = baseCost * (level + 1);
+        return {
+          label: `${name} (niv ${level})`,
+          description: `Effet: +${effect} | Coût: ${cost} bulles`,
+          value: name,
+        };
+      });
 
       const menu = new StringSelectMenuBuilder()
         .setCustomId("upgrade_menu")
@@ -207,15 +233,26 @@ module.exports = {
       const upgradesList = await BulleUpgrade.findAll({
         where: { userId: target.id },
       });
+
       const vis = {
         ...visuals[userData.businessType],
         ...visuals[userData.entreprise],
       };
 
       let bullesPerSec = 0;
+      let bullesPerClick = 1 * (ENTREPRISE_TIERS[userData.entreprise] || 1);
+
       for (const up of upgradesList) {
-        const { effect } = upgrades[up.upgradeName] || { effect: 0 };
-        bullesPerSec += effect * up.level;
+        const upgrade = require("../../../autoscript/autobulle/entreprises")[
+          userData.entreprise
+        ].upgrades[up.upgradeName];
+        if (upgrade) {
+          if (up.upgradeName.toLowerCase().includes("clic")) {
+            bullesPerClick += upgrade.effect * up.level;
+          } else {
+            bullesPerSec += upgrade.effect * up.level;
+          }
+        }
       }
 
       const embed = new EmbedBuilder()
@@ -234,6 +271,11 @@ module.exports = {
             inline: true,
           },
           { name: "🔁 Bulles/s", value: `**${bullesPerSec}**`, inline: true },
+          {
+            name: "🖱️ Bulles/clic",
+            value: `**${bullesPerClick}**`,
+            inline: true,
+          },
           {
             name: "🏆 Total historique",
             value: `**${userData.totalBulles}**`,

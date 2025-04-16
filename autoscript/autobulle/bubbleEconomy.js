@@ -1,5 +1,5 @@
-const BulleUser = require("../../../Sequelize/modèles/argent/bulle/BubbleUser");
-const BulleUpgrade = require("../../../Sequelize/modèles/argent/bulle/BubbleUpgrade");
+const BulleUser = require("../../Sequelize/modèles/argent/bulle/BubbleUser");
+const BulleUpgrade = require("../../Sequelize/modèles/argent/bulle/BubbleUpgrade");
 const ENTREPRISES = require("./entreprises");
 
 function calculateProduction(upgrades, entreprise = "à la sauvette") {
