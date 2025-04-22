@@ -127,7 +127,7 @@ module.exports = {
     let hasWon = false;
     let lost = false; // Indicateur pour savoir si l'utilisateur a perdu
 
-    const isFishingSuccessful = Math.random() < 0.5;
+    const isFishingSuccessful = Math.random() < 0.6;
 
     await message.react("💧");
 
@@ -156,7 +156,7 @@ module.exports = {
 
           collector.on("collect", async (reaction, user) => {
             try {
-              const bonus = betAmount * 0.65;
+              const bonus = betAmount * 0.95;
               userEconomy.pièces += bonus;
               await userEconomy.save();
 
