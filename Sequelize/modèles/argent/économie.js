@@ -7,19 +7,17 @@ const Economie = sequelize.define("Economie", {
     primaryKey: true,
   },
   champignons: {
-    // Monnaie rare (ne peut pas être négative)
     type: DataTypes.INTEGER,
     defaultValue: 0,
     allowNull: false,
     validate: {
-      min: 0, // Empêche les valeurs négatives
+      min: 0,
     },
   },
   pièces: {
-    // Monnaie commune (peut être négative)
     type: DataTypes.INTEGER,
     defaultValue: 0,
-    allowNull: false, // Toujours défini
+    allowNull: false,
   },
 });
 
