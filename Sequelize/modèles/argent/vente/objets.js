@@ -4,7 +4,7 @@ const sequelize = require("../../../sequelize");
 const Objets = sequelize.define("Objets", {
   name: {
     type: DataTypes.STRING,
-    allowNull: false, // Le nom de l'objet est requis
+    allowNull: false,
   },
   description: {
     type: DataTypes.STRING,
@@ -12,14 +12,12 @@ const Objets = sequelize.define("Objets", {
   },
   price: {
     type: DataTypes.INTEGER,
-    allowNull: false, // Le prix de l'objet est requis
+    allowNull: false,
   },
   stock: {
     type: DataTypes.INTEGER,
-    defaultValue: 0, // Par défaut, il n'y a pas de stock
+    defaultValue: 0,
   },
 });
-
-// Ce modèle peut être utilisé pour récupérer les objets de la table "Objets"
 
 module.exports = Objets;

@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 const Economie = require("../../../Sequelize/modèles/argent/économie");
+const Prestige = require("../../../Sequelize/modèles/prestige");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -17,6 +18,10 @@ module.exports = {
       interaction.options.getUser("utilisateur") || interaction.user;
 
     const user = await Economie.findOne({
+      where: { userId: targetUser.id },
+    });
+
+    const prestige = await Prestige.findOne({
       where: { userId: targetUser.id },
     });
 
@@ -61,6 +66,13 @@ module.exports = {
           {
             name: "Nombre de pièces",
             value: `Ce compte contient actuellement ${user.pièces} <:bouee:1357248291238318273> pièces !`,
+            inline: true,
+          },
+          {
+            name: "🏆 Prestige",
+            value: `Ce compte possède actuellement ${
+              prestige ? prestige.prestige : 0
+            } points de prestige !`,
             inline: true,
           },
           {

@@ -51,7 +51,7 @@ async function runPassiveTickOnce() {
       );
     }
   }
-  console.log(`💙 Maj des bulles effectuée à ${DateTime.now().toISO()}`);
+  console.log(`💙 Maj des bulles effectuée !`);
 }
 
 module.exports = { updatePassiveBubbles };
