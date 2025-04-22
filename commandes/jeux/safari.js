@@ -9,6 +9,7 @@ const Pets = require("../../Sequelize/modèles/argent/vente/animaux/pets");
 const { Op } = require("sequelize");
 const UserPets = require("../../Sequelize/modèles/argent/vente/animaux/userpets");
 const Economie = require("../../Sequelize/modèles/argent/économie");
+const { fn, col, where: sequelizeWhere } = require("sequelize");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -78,7 +79,7 @@ module.exports = {
       if (!ticket) {
         return interaction.reply({
           content:
-            "❌ Tu n'as pas de ticket safari ! J'ai entendu dire que Mademoiselle Bonajade en vendait en ce moment !",
+            "❌ Tu n'as pas de ticket safari ! J'ai entendu dire que Madame Bonajade en vendait en ce moment !",
         });
       }
 
@@ -355,6 +356,50 @@ module.exports = {
       return interaction.reply(
         `❌ Tu as "relâché" **${petNom}** et trouvé **${reward} pièces** dans ses restes !`
       );
+    }
+
+    if (subcommand === "pet") {
+      const petNom = interaction.options.getString("pet_nom");
+
+      const pet = await Pets.findOne({
+        where: sequelizeWhere(fn("lower", col("name")), fn("lower", petNom)),
+      });
+
+      if (!pet) {
+        return interaction.reply({
+          content: "❌ Ce pet n'existe pas.",
+        });
+      }
+
+      const totalDresseurs = await UserPets.count({
+        where: { petId: pet.id },
+        distinct: true,
+        col: "userId",
+      });
+
+      const emojisByRarity = {
+        commun: "🐾",
+        rare: "🦊",
+        légendaire: "🦁",
+        mythique: "🐉",
+      };
+
+      const emoji = emojisByRarity[pet.rarity] || "";
+
+      const embed = new EmbedBuilder()
+        .setTitle(`${emoji} ${pet.name}`)
+        .setDescription(
+          `**Rareté** : ${pet.rarity}
+          **Pouvoir** : ${pet.effect_type || "Aucun"}
+          **Capturé par** : ${totalDresseurs} dresseur${
+            totalDresseurs > 1 ? "s" : ""
+          }`
+        )
+        .setColor("#ffaa00")
+        .setImage(pet.image_url || null)
+        .setFooter({ text: `Demande faite par ${interaction.user.username}` });
+
+      return interaction.reply({ embeds: [embed] });
     }
   },
 };
