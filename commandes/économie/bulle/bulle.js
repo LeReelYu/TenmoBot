@@ -262,27 +262,29 @@ module.exports = {
         .addFields(
           {
             name: "Type 💙",
-            value: profile.businessType,
+            value: `${profile.businessType || "Inconnu"}`,
             inline: true,
           },
           {
             name: "Nom 📅",
-            value: profile.businessName || profile.businessType,
+            value: `${
+              profile.businessName || profile.businessType || "Sans nom"
+            }`,
             inline: true,
           },
           {
             name: "Bulles 💧",
-            value: profile.bubbles.toString(),
+            value: `${profile.bubbles ?? 0}`,
             inline: true,
           },
           {
             name: "Rang 🏅",
-            value: getRangName(profile.level ?? 1),
+            value: `${getRangName(profile.level ?? 1)}`,
             inline: true,
           },
           {
             name: "Rendement 🕒",
-            value: `${profile.passiveRate} bulles / 10min`,
+            value: `${profile.passiveRate ?? 0} bulles / 10min`,
             inline: true,
           }
         )
