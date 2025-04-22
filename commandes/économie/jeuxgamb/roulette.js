@@ -111,7 +111,22 @@ module.exports = {
         break;
     }
 
-    userEco.pièces += aGagné ? gain : -mise;
+    if (aGagné) {
+      userEco.pièces += gain;
+    } else {
+      let perteTotale = mise;
+
+      // 50% de chances de subir une perte supplémentaire jusqu'à +75%
+      if (Math.random() < 0.5) {
+        const extraPerte = Math.floor(mise * (Math.random() * 0.75));
+        perteTotale += extraPerte;
+        details += `\n😬 Malchance ! Tu perds **${extraPerte} pièces** en plus...`;
+      }
+
+      userEco.pièces -= perteTotale;
+      gain = -perteTotale;
+    }
+
     await userEco.save();
 
     const embed = new EmbedBuilder()
@@ -121,7 +136,7 @@ module.exports = {
         `${details}\n\n${
           aGagné
             ? `🟡 Tu gagnes **${gain} pièces** !`
-            : `😢 Tu perds **${mise} pièces**.`
+            : `😢 Tu perds **${Math.abs(gain)} pièces**.`
         }`
       )
       .setImage(

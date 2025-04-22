@@ -8,7 +8,7 @@ const {
 } = require("discord.js");
 const Economie = require("../../../Sequelize/modèles/argent/économie");
 
-let canUseBlackjack = true; // Déclare un verrou global temporaire
+let canUseBlackjack = true;
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -22,7 +22,6 @@ module.exports = {
     ),
 
   async execute(interaction) {
-    // Si la commande est utilisée trop rapidement (moins de 1 seconde d'écart)
     if (!canUseBlackjack) {
       return interaction.reply({
         content:
@@ -31,27 +30,24 @@ module.exports = {
       });
     }
 
-    // Bloque l'utilisation de la commande pendant 1 seconde
     canUseBlackjack = false;
     setTimeout(() => {
       canUseBlackjack = true;
-    }, 1000); // 1 seconde
+    }, 1000);
 
     const mise = interaction.options.getInteger("mise");
     const userId = interaction.user.id;
 
     const userEco = await Economie.findByPk(userId);
     if (!userEco || userEco.pièces < mise || mise <= 0) {
-      // Fin de la partie si l'utilisateur n'a pas assez de pièces
       return interaction.reply({
         content:
           "❌ Tu n'as pas assez de pièces pour faire ce pari, ou tu essaies de miser un montant invalide.",
       });
     }
 
-    // Code pour générer le deck et les mains comme tu l'avais fait auparavant
     const deck = [];
-    const valeurs = [2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10, 11]; // 10 pour J, Q, K ; 11 pour As
+    const valeurs = [2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10, 11];
     const couleurs = ["♠", "♥", "♦", "♣"];
     for (const couleur of couleurs) {
       for (const valeur of valeurs) {
@@ -169,22 +165,32 @@ module.exports = {
     });
 
     collector.on("end", async (_, reason) => {
+      let result = "";
+      let perteBonus = 0;
+
       if (reason === "stand") {
         while (dealerTotal < 17) {
           dealerHand.push(drawCard());
           dealerTotal = calcTotal(dealerHand);
         }
 
-        let result = "";
         if (dealerTotal > 21 || playerTotal > dealerTotal) {
           result = `✅ Tu gagnes **${mise * 1.25}** pièces !`;
           userEco.pièces += mise;
         } else if (playerTotal < dealerTotal) {
           result = "❌ Tu perds ta mise.";
-          userEco.pièces -= mise;
+
+          // Ajout de la perte supplémentaire possible
+          if (Math.random() < 0.5) {
+            perteBonus = Math.floor(mise * (Math.random() * 0.75));
+            result += `\n😬 Malchance ! Tu perds **${perteBonus} pièces** en plus...`;
+          }
+
+          userEco.pièces -= mise + perteBonus;
         } else {
           result = "🔁 Égalité, tu récupères ta mise.";
         }
+
         await userEco.save();
 
         const finalEmbed = new EmbedBuilder()
@@ -204,7 +210,15 @@ module.exports = {
 
         await interaction.editReply({ embeds: [finalEmbed], components: [] });
       } else if (reason === "bust") {
-        userEco.pièces -= mise;
+        // Perte normale sur dépassement
+        let perteTotale = mise;
+
+        if (Math.random() < 0.5) {
+          perteBonus = Math.floor(mise * (Math.random() * 0.75));
+          perteTotale += perteBonus;
+        }
+
+        userEco.pièces -= perteTotale;
         await userEco.save();
       } else {
         await interaction.editReply({ components: [] });
