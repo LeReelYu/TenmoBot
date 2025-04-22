@@ -102,7 +102,7 @@ module.exports = {
           (typePari === "pair" && estPair) ||
           (typePari === "impair" && !estPair && tirage !== 0)
         ) {
-          gain = mise * 2;
+          gain = mise * 1.25;
           aGagné = true;
           details = `Tu as parié sur **${typePari}**, et le tirage était **${tirage}**. ✔️`;
         } else {

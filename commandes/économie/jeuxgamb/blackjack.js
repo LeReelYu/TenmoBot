@@ -177,7 +177,7 @@ module.exports = {
 
         let result = "";
         if (dealerTotal > 21 || playerTotal > dealerTotal) {
-          result = `✅ Tu gagnes **${mise * 2}** pièces !`;
+          result = `✅ Tu gagnes **${mise * 1.25}** pièces !`;
           userEco.pièces += mise;
         } else if (playerTotal < dealerTotal) {
           result = "❌ Tu perds ta mise.";
