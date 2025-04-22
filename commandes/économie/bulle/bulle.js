@@ -284,7 +284,7 @@ module.exports = {
           },
           {
             name: "Rendement 🕒",
-            value: `${profile.passiveRate ?? 0} bulles / 10min`,
+            value: `${profile.passiveRate ?? 0} bulles / 5min`,
             inline: true,
           }
         )
