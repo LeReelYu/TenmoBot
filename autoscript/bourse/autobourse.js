@@ -158,7 +158,9 @@ async function updateMarketPrice(client) {
 }
 
 function automajbourse(client) {
-  console.log("⏳ Lancement de la vérification toutes les minutes...");
+  console.log(
+    "⏳ Lancement de la vérification boursière toutes les vingt minutes..."
+  );
 
   setInterval(async () => {
     try {
@@ -182,12 +184,14 @@ function automajbourse(client) {
         console.log("✅ 1h écoulée, mise à jour déclenchée !");
         await updateMarketPrice(client);
       } else {
-        console.log("🕒 Pas encore 1h, en attente...");
+        console.log(
+          "🕒 Pas encore 1h, en attente pour l'évolution boursière..."
+        );
       }
     } catch (err) {
       console.error("❌ Erreur dans la vérification :", err);
     }
-  }, 60 * 1000);
+  }, 20 * 60 * 1000);
 }
 
 module.exports = {

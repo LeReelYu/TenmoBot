@@ -11,6 +11,7 @@ const Economie = require("../Sequelize/modèles/argent/économie");
 const { DateTime } = require("luxon");
 const { automajbourse } = require("../autoscript/bourse/autobourse");
 const scheduleCommit = require("../autoscript/utilitaire/automaj");
+const { updatePassiveBubbles } = require("../autoscript/autobulle/autogain");
 
 module.exports = {
   name: Events.ClientReady,
@@ -26,6 +27,7 @@ module.exports = {
     autochannel(client);
     automajbourse(client);
     scheduleCommit();
+    updatePassiveBubbles();
 
     sequelize.sync().then(() => {
       console.log("📦 Base de données synchronisée !");
