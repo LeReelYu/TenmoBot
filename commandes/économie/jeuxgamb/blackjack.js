@@ -175,20 +175,17 @@ module.exports = {
         }
 
         if (dealerTotal > 21 || playerTotal > dealerTotal) {
-          result = `✅ Tu gagnes **${mise * 1.25}** pièces !`;
-          userEco.pièces += mise;
+          const gain = Math.floor(mise * 0.75);
+          result = `✅ Tu gagnes **${gain}** pièces (gain réduit) !`;
+          userEco.pièces += gain;
         } else if (playerTotal < dealerTotal) {
-          result = "❌ Tu perds ta mise.";
-
-          // Ajout de la perte supplémentaire possible
-          if (Math.random() < 0.5) {
-            perteBonus = Math.floor(mise * (Math.random() * 0.75));
-            result += `\n😬 Malchance ! Tu perds **${perteBonus} pièces** en plus...`;
-          }
-
+          perteBonus = Math.floor(mise * (Math.random() * 0.5 + 0.5));
+          result = `❌ Tu perds **${mise + perteBonus}** pièces !`;
           userEco.pièces -= mise + perteBonus;
         } else {
-          result = "🔁 Égalité, tu récupères ta mise.";
+          const perteÉgalité = Math.floor(mise * 0.15);
+          result = `🔁 Égalité, mais la maison gagne... Tu perds **${perteÉgalité}** pièces.`;
+          userEco.pièces -= perteÉgalité;
         }
 
         await userEco.save();
@@ -210,14 +207,11 @@ module.exports = {
 
         await interaction.editReply({ embeds: [finalEmbed], components: [] });
       } else if (reason === "bust") {
-        // Perte normale sur dépassement
         let perteTotale = mise;
-
-        if (Math.random() < 0.5) {
-          perteBonus = Math.floor(mise * (Math.random() * 0.75));
+        if (Math.random() < 0.75) {
+          perteBonus = Math.floor(mise * (Math.random() * 0.75 + 0.25));
           perteTotale += perteBonus;
         }
-
         userEco.pièces -= perteTotale;
         await userEco.save();
       } else {

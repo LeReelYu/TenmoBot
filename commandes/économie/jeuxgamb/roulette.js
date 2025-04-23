@@ -77,7 +77,7 @@ module.exports = {
     switch (typePari) {
       case "numero":
         if (tirage === numeroChoisi) {
-          gain = mise * 35;
+          gain = mise * 25;
           aGagné = true;
           details = `Tu as parié sur **${numeroChoisi}**, et le tirage était **${tirage}**. 🎯`;
         } else {
@@ -88,7 +88,7 @@ module.exports = {
       case "rouge":
       case "noir":
         if (couleur === typePari) {
-          gain = mise * 2;
+          gain = mise * 1.5;
           aGagné = true;
           details = `Tu as parié sur **${typePari}**, et le tirage était **${tirage} (${couleur})**. 🔴⚫`;
         } else {
@@ -102,7 +102,7 @@ module.exports = {
           (typePari === "pair" && estPair) ||
           (typePari === "impair" && !estPair && tirage !== 0)
         ) {
-          gain = mise * 1.25;
+          gain = mise * 1.1;
           aGagné = true;
           details = `Tu as parié sur **${typePari}**, et le tirage était **${tirage}**. ✔️`;
         } else {
@@ -115,16 +115,20 @@ module.exports = {
       userEco.pièces += gain;
     } else {
       let perteTotale = mise;
+      let extraDetails = "";
 
-      // 50% de chances de subir une perte supplémentaire jusqu'à +75%
-      if (Math.random() < 0.5) {
-        const extraPerte = Math.floor(mise * (Math.random() * 0.75));
+      if (Math.random() < 0.1) {
+        perteTotale = mise * 3;
+        extraDetails = `\n💀 CATASTROPHE ! Tu as fait un **BUST** et perds **3x ta mise** !`;
+      } else {
+        const extraPerte = Math.floor(mise * (Math.random() * 0.75 + 0.25));
         perteTotale += extraPerte;
-        details += `\n😬 Malchance ! Tu perds **${extraPerte} pièces** en plus...`;
+        extraDetails = `\n😬 Malchance ! Tu perds **${extraPerte} pièces** en plus...`;
       }
 
       userEco.pièces -= perteTotale;
       gain = -perteTotale;
+      details += extraDetails;
     }
 
     await userEco.save();
