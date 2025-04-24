@@ -150,7 +150,8 @@ module.exports = {
         const captureCount = await UserPets.count({
           where: { petId: pet.id },
         });
-        if (captureCount < pet.max_captures) {
+
+        if (pet.max_quantity == null || captureCount < pet.max_quantity) {
           filteredPets.push(pet);
         }
       }
