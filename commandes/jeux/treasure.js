@@ -33,16 +33,16 @@ module.exports = {
       });
 
       const embed = new EmbedBuilder()
-        .setTitle("🏆 Leaderboard - Chasseurs de trésor")
+        .setTitle("\ud83c\udfc6 Leaderboard - Chasseurs de trésor")
         .setColor("Gold")
         .setDescription(
           topPlayers.length
             ? topPlayers
                 .map(
                   (user, index) =>
-                    `${index + 1}. **${user.username}** - 💰 ${
+                    `${index + 1}. **${user.username}** - \ud83d\udcb0 ${
                       user.totalGains
-                    } pièces (🎯 ${user.chassesEffectuées} chasses)`
+                    } pièces (\ud83c\udfaf ${user.chassesEffectuées} chasses)`
                 )
                 .join("\n")
             : "Aucun aventurier en tête pour l'instant. Lance-toi dans la chasse !"
@@ -61,76 +61,95 @@ module.exports = {
       );
     }
 
-    user.pièces -= mise; // La mise est retirée du solde de l'utilisateur
+    user.pièces -= mise;
     await user.save();
 
-    // Dimensions de la carte
-    const mapSize = 4; // Carte de 4x4 (les coordonnées seront de 1 à 4)
+    const mapSize = 4;
     const map = Array(mapSize)
       .fill(null)
-      .map(() => Array(mapSize).fill(" ")); // Carte vide au départ
+      .map(() => Array(mapSize).fill(" "));
 
-    // Placer aléatoirement les trésors et pièges
-    const treasuresCount = 2; // Nombre de trésors
-    const trapsCount = 2; // Nombre de pièges
+    const treasuresCount = 2;
+    const trapsCount = 2;
 
-    // Placer les trésors (cases cachées derrière des diamants)
     let treasures = [];
     for (let i = 0; i < treasuresCount; i++) {
       let x, y;
       do {
         x = Math.floor(Math.random() * mapSize);
         y = Math.floor(Math.random() * mapSize);
-      } while (map[x][y] !== " "); // S'assurer qu'on ne place pas un trésor sur une case déjà occupée
-      map[x][y] = "T"; // Marque la position du trésor
+      } while (map[x][y] !== " ");
+      map[x][y] = "T";
       treasures.push({ x, y });
     }
 
-    // Placer les pièges (cases cachées derrière des diamants)
     let traps = [];
     for (let i = 0; i < trapsCount; i++) {
       let x, y;
       do {
         x = Math.floor(Math.random() * mapSize);
         y = Math.floor(Math.random() * mapSize);
-      } while (map[x][y] !== " "); // S'assurer qu'on ne place pas un piège sur une case déjà occupée
-      map[x][y] = "P"; // Marque la position du piège
+      } while (map[x][y] !== " ");
+      map[x][y] = "P";
       traps.push({ x, y });
     }
 
-    // Définir l'emoji de la carte (seul le bot sait si c'est un trésor ou un piège)
-    const treasureTile = "💎"; // Les trésors ET les pièges utilisent ce même emoji
+    const generateGrid = (treasures, traps, mapSize, lockedTreasure) => {
+      let grid = "";
+      for (let i = 0; i < mapSize; i++) {
+        let row = "";
+        for (let j = 0; j < mapSize; j++) {
+          if (lockedTreasure.some((t) => t.x === i && t.y === j)) {
+            row += "[💎] ";
+          } else if (traps.some((t) => t.x === i && t.y === j)) {
+            row += "[💎] ";
+          } else {
+            row += "[🏜️] ";
+          }
+        }
+        grid += row + "\n";
+      }
+      return grid;
+    };
 
-    // Créer la carte (grille de jeu)
     let mapEmbed = new EmbedBuilder()
       .setTitle("🌍 Carte du Désert")
       .setColor("Orange")
-      .setDescription("Explore la carte et trouve les trésors !");
-
-    // Affichage de la grille (sable et emojis de diamant pour les trésors/pièges)
-    let gridDisplay = "";
-    for (let i = 0; i < mapSize; i++) {
-      let row = "";
-      for (let j = 0; j < mapSize; j++) {
-        if (map[i][j] === "T" || map[i][j] === "P") {
-          row += `[${treasureTile}] `; // Afficher un diamant pour les trésors et pièges
-        } else {
-          row += "[🏜️] "; // Sable pour les autres cases
-        }
-      }
-      gridDisplay += row + "\n";
-    }
-
-    // Ajouter la grille à l'embed
-    mapEmbed.addFields({
-      name: "Grille du Désert",
-      value: gridDisplay,
-      inline: false,
-    });
+      .setDescription("Explore la carte et trouve les trésors !")
+      .addFields({
+        name: "Grille du Désert",
+        value: generateGrid(treasures, traps, mapSize, treasures),
+        inline: false,
+      });
 
     await interaction.reply({ embeds: [mapEmbed] });
 
-    // Demander à l'utilisateur de choisir des coordonnées
+    for (let t = 0; t < 4; t++) {
+      await new Promise((resolve) => setTimeout(resolve, 5000));
+      traps = traps.map(() => {
+        let newX, newY;
+        do {
+          newX = Math.floor(Math.random() * mapSize);
+          newY = Math.floor(Math.random() * mapSize);
+        } while (treasures.some((t) => t.x === newX && t.y === newY));
+        return { x: newX, y: newY };
+      });
+
+      const movingEmbed = new EmbedBuilder()
+        .setTitle("🌪️ Le désert bouge...")
+        .setColor("Orange")
+        .setDescription(
+          "Les mirages changent de place... Trouveras-tu le bon diamant ?"
+        )
+        .addFields({
+          name: "Grille mouvante",
+          value: generateGrid(treasures, traps, mapSize, treasures),
+          inline: false,
+        });
+
+      await interaction.followUp({ embeds: [movingEmbed] });
+    }
+
     const promptEmbed = new EmbedBuilder()
       .setTitle("📍 Choisis tes coordonnées")
       .setDescription(
@@ -140,26 +159,22 @@ module.exports = {
 
     await interaction.followUp({ embeds: [promptEmbed] });
 
-    // Attente de la réponse de l'utilisateur
     const filter = (msg) =>
-      msg.author.id === interaction.user.id && /^(\d),(\d)$/.test(msg.content); // Format des coordonnées : x,y
+      msg.author.id === interaction.user.id && /^\d,\d$/.test(msg.content);
 
     try {
       const collected = await interaction.channel.awaitMessages({
         filter,
         max: 1,
-        time: 200000, // Temps de réponse de 3 minutes et 20 secondes
+        time: 200000,
         errors: ["time"],
       });
 
       const input = collected.first().content;
       let [x, y] = input.split(",").map(Number);
-
-      // Convertir les coordonnées utilisateur de 1-4 à 0-3
       x -= 1;
       y -= 1;
 
-      // Vérification si les coordonnées sont valides
       if (
         isNaN(x) ||
         isNaN(y) ||
@@ -173,12 +188,10 @@ module.exports = {
         );
       }
 
-      // Vérification si l'utilisateur a trouvé un trésor ou un piège
       let resultEmbed = new EmbedBuilder().setColor("Orange");
 
       if (treasures.some((t) => t.x === x && t.y === y)) {
-        // Trésor trouvé
-        const gain = mise * Math.floor(Math.random() * 2 + 2);
+        const gain = mise * Math.floor(Math.random() * 3 + 3);
         user.pièces += gain;
         await user.save();
 
@@ -190,9 +203,7 @@ module.exports = {
             }) ! 💰\nTu gagnes **${gain} pièces**.`
           );
       } else if (traps.some((t) => t.x === x && t.y === y)) {
-        // Piège déclenché
-        const perte =
-          mise + Math.floor(Math.random() * mise * 0.5 + mise * 0.2);
+        const perte = Math.floor(mise * (1.5 + Math.random()));
         user.pièces -= perte;
         await user.save();
 
@@ -204,7 +215,6 @@ module.exports = {
             }) ! 😱\nTu perds **${perte} pièces**.`
           );
       } else {
-        // Rien trouvé
         user.pièces -= mise;
         await user.save();
 
