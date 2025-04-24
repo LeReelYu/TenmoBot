@@ -366,6 +366,7 @@ module.exports = {
 
       const options = [];
 
+      // Créer les options pour les améliorations disponibles
       for (const upgradeName of availableNormal) {
         const cost = upgradePrices[businessType][upgradeName];
         options.push({
@@ -385,6 +386,7 @@ module.exports = {
         });
       }
 
+      // Si aucune option n'est disponible
       if (options.length === 0) {
         return interaction.reply({
           content: "✅ Tu as déjà toutes les améliorations disponibles !",
@@ -398,6 +400,7 @@ module.exports = {
         )
         .setColor("Aqua");
 
+      // Ajouter les options dans l'embed
       for (const opt of options) {
         embed.addFields({
           name: opt.label,
@@ -413,6 +416,7 @@ module.exports = {
 
       const row = new ActionRowBuilder().addComponents(selectMenu);
 
+      // Envoyer l'embed et le menu de sélection
       return interaction.reply({
         embeds: [embed],
         components: [row],
@@ -460,21 +464,29 @@ module.exports = {
             );
           }
 
-          amount = Math.floor(target.bubbles * 0.3);
+          amount = Math.floor(target.bubbles * 0.3); // Tentative de vol : 30% des bulles
           target.bubbles -= amount;
           targetName = targetUser.username;
           await target.save();
           successMessage = `🕶️ Tu as volé **${amount} bulles** à **${targetName}** !`;
         }
-        // Si échec
+
+        // Si échec (30% de chance)
         if (randomChance) {
-          amount = Math.floor(amount * 0.5); // Vol partiellement échoué, seulement la moitié des bulles
+          amount = Math.floor(amount * 0.5); // Vol échoué, seulement la moitié des bulles volées
           successMessage = `⚠️ Vol échoué ! Tu n'as réussi qu'à voler **${amount} bulles**.`;
           gifURL =
             "https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExa29oMzd5ZDgweGhsdWk0Y2EwM3V6N3o1YmRuOHJpNGlkZDM1NHl3NyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/RGVqj8v6aoY2UFzWYa/giphy.gif"; // GIF d'échec
         }
 
-        profile.bubbles += amount;
+        // Ajouter des pertes de bulles en cas d'échec
+        if (randomChance) {
+          const lostAmount = Math.floor(amount * 0.5); // Perdre la moitié des bulles en cas d'échec
+          profile.bubbles -= lostAmount;
+          successMessage = `⚠️ Vol échoué, tu as perdu **${lostAmount} bulles**.`;
+        }
+
+        profile.bubbles += amount; // Ajouter les bulles obtenues
         await profile.save();
         cooldowns[cooldownKey] = Date.now();
 
@@ -508,7 +520,6 @@ module.exports = {
 
         await interaction.reply({ embeds: [embedLoading] });
 
-        // Attendre quelques secondes avant de rendre le résultat
         await new Promise((resolve) => setTimeout(resolve, 2000)); // Attente de 2 secondes
 
         if (targetUser) {
@@ -528,7 +539,8 @@ module.exports = {
           profile.coins += coinsEarned;
           await target.save();
           successMessage = `🧨 Tu as saboté **${targetName}** et gagné **${coinsEarned} pièces** !`;
-          // Chance d'échec : si échec, l'utilisateur perd des pièces
+
+          // Chance d'échec
           if (randomChance) {
             coinsLost = Math.floor(coinsEarned * 0.5); // Perd moitié des pièces
             profile.coins -= coinsLost;
@@ -536,47 +548,47 @@ module.exports = {
             gifURL =
               "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExOWo2bmRucmN4MnR5YzhrcjMwazFrdDM1cWVyOWlyYmFpbjJ2d3l0cyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/sBdepHrDXnU7m/giphy.gif"; // GIF échec sabotage
           }
-
-          await profile.save();
-          cooldowns[cooldownKey] = Date.now();
-
-          const embed = new EmbedBuilder()
-            .setTitle("💥 Sabotage terminé !")
-            .setDescription(successMessage)
-            .setImage(gifURL)
-            .setColor("#FF4D4D"); // Rouge
-
-          return interaction.editReply({ embeds: [embed] });
         }
 
-        if (action === "piratage") {
-          const gain = Math.floor(30 + Math.random() * 70);
-          profile.bubbles += gain;
+        await profile.save();
+        cooldowns[cooldownKey] = Date.now();
 
-          // Chance d'échec
-          let successMessage = `💻 Tu as piraté avec succès et gagné **${gain} bulles** !`;
-          let gifURL =
-            "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExYjF1N2FuajJwM2lkeTljb3hvdzN4OTZ0anI4Mjl1bXgwNXQ5N2U5aCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/sPN6dcdruDgdi/giphy.gif";
+        const embed = new EmbedBuilder()
+          .setTitle("💥 Sabotage terminé !")
+          .setDescription(successMessage)
+          .setImage(gifURL)
+          .setColor("#FF4D4D"); // Rouge
 
-          if (randomChance) {
-            const loss = Math.floor(gain * 0.5); // Perd moitié de l'argent dans un échec
-            profile.bubbles -= loss;
-            successMessage = `⚠️ Piratage échoué, tu as perdu **${loss} bulles**.`;
-            gifURL =
-              "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExYjF1N2FuajJwM2lkeTljb3hvdzN4OTZ0anI4Mjl1bXgwNXQ5N2U5aCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/sPN6dcdruDgdi/giphy.gif"; // GIF échec piratage
-          }
+        return interaction.editReply({ embeds: [embed] });
+      }
 
-          await profile.save();
-          cooldowns[cooldownKey] = Date.now();
+      if (action === "piratage") {
+        const gain = Math.floor(30 + Math.random() * 70);
+        profile.bubbles += gain;
 
-          const embed = new EmbedBuilder()
-            .setTitle("💻 Piratage réussi !")
-            .setDescription(successMessage)
-            .setImage(gifURL)
-            .setColor("#0E4D92"); // Bleu
+        let successMessage = `💻 Tu as piraté avec succès et gagné **${gain} bulles** !`;
+        let gifURL =
+          "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExYjF1N2FuajJwM2lkeTljb3hvdzN4OTZ0anI4Mjl1bXgwNXQ5N2U5aCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/sPN6dcdruDgdi/giphy.gif";
 
-          return interaction.reply({ embeds: [embed] });
+        // Chance d'échec
+        if (randomChance) {
+          const loss = Math.floor(gain * 0.5); // Perd moitié des bulles en cas d'échec
+          profile.bubbles -= loss;
+          successMessage = `⚠️ Piratage échoué, tu as perdu **${loss} bulles**.`;
+          gifURL =
+            "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExYjF1N2FuajJwM2lkeTljb3hvdzN4OTZ0anI4Mjl1bXgwNXQ5N2U5aCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/sPN6dcdruDgdi/giphy.gif"; // GIF échec piratage
         }
+
+        await profile.save();
+        cooldowns[cooldownKey] = Date.now();
+
+        const embed = new EmbedBuilder()
+          .setTitle("💻 Piratage réussi !")
+          .setDescription(successMessage)
+          .setImage(gifURL)
+          .setColor("#0E4D92"); // Bleu
+
+        return interaction.reply({ embeds: [embed] });
       }
     }
   },
