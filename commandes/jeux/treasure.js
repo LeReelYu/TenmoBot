@@ -33,16 +33,16 @@ module.exports = {
       });
 
       const embed = new EmbedBuilder()
-        .setTitle("\ud83c\udfc6 Leaderboard - Chasseurs de trésor")
+        .setTitle("🏆 Leaderboard - Chasseurs de trésor")
         .setColor("Gold")
         .setDescription(
           topPlayers.length
             ? topPlayers
                 .map(
                   (user, index) =>
-                    `${index + 1}. **${user.username}** - \ud83d\udcb0 ${
+                    `${index + 1}. **${user.username}** - 💰 ${
                       user.totalGains
-                    } pièces (\ud83c\udfaf ${user.chassesEffectuées} chasses)`
+                    } pièces (🎯 ${user.chassesEffectuées} chasses)`
                 )
                 .join("\n")
             : "Aucun aventurier en tête pour l'instant. Lance-toi dans la chasse !"
@@ -65,15 +65,23 @@ module.exports = {
     await user.save();
 
     const mapSize = 4;
+    const treasuresCount = 2;
+    const trapsCount = 2;
     const map = Array(mapSize)
       .fill(null)
       .map(() => Array(mapSize).fill(" "));
 
-    const treasuresCount = 2;
-    const trapsCount = 2;
+    // 🎯 Trésor fixe à position aléatoire
+    let staticTreasure;
+    do {
+      const x = Math.floor(Math.random() * mapSize);
+      const y = Math.floor(Math.random() * mapSize);
+      staticTreasure = { x, y };
+    } while (map[staticTreasure.x][staticTreasure.y] !== " ");
+    map[staticTreasure.x][staticTreasure.y] = "T";
+    let treasures = [staticTreasure];
 
-    let treasures = [];
-    for (let i = 0; i < treasuresCount; i++) {
+    for (let i = 1; i < treasuresCount; i++) {
       let x, y;
       do {
         x = Math.floor(Math.random() * mapSize);
@@ -102,7 +110,7 @@ module.exports = {
           if (lockedTreasure.some((t) => t.x === i && t.y === j)) {
             row += "[💎] ";
           } else if (traps.some((t) => t.x === i && t.y === j)) {
-            row += "[💎] ";
+            row += "[💥] ";
           } else {
             row += "[🏜️] ";
           }
@@ -124,8 +132,20 @@ module.exports = {
 
     await interaction.reply({ embeds: [mapEmbed] });
 
+    // 🌪️ Mouvements du désert avec réapparition du trésor fixe
     for (let t = 0; t < 4; t++) {
       await new Promise((resolve) => setTimeout(resolve, 5000));
+
+      if (t === 2 || t === 3) {
+        if (
+          !treasures.some(
+            (tr) => tr.x === staticTreasure.x && tr.y === staticTreasure.y
+          )
+        ) {
+          treasures.push({ x: staticTreasure.x, y: staticTreasure.y });
+        }
+      }
+
       traps = traps.map(() => {
         let newX, newY;
         do {
@@ -153,7 +173,7 @@ module.exports = {
     const promptEmbed = new EmbedBuilder()
       .setTitle("📍 Choisis tes coordonnées")
       .setDescription(
-        "Quel emplacement veux-tu explorer ? (Format : ligne, colonne où les chiffres sont entre 1 et 4 / Ex: 1,2)"
+        "Quel emplacement veux-tu explorer ? (Format : ligne,colonne entre 1 et 4 / ex : 1,3)"
       )
       .setColor("Yellow");
 
@@ -215,15 +235,12 @@ module.exports = {
             }) ! 😱\nTu perds **${perte} pièces**.`
           );
       } else {
-        user.pièces -= mise;
-        await user.save();
-
         resultEmbed
           .setTitle("🪙 Rien trouvé...")
           .setDescription(
             `Tu n'as rien trouvé à (${x + 1}, ${
               y + 1
-            }), mais tu perds ta mise de **${mise} pièces**.`
+            }), ta mise de **${mise} pièces** est perdue.`
           );
       }
 
