@@ -38,14 +38,14 @@ const fishTiers = [
     multiplier: 0,
     chance: 0.025,
     isBad: true,
-  }, // Poisson mauvais
+  },
   {
     emoji: "🦑",
     name: "Calamar maléfique",
     multiplier: 0,
     chance: 0.025,
     isBad: true,
-  }, // Poisson mauvais
+  },
 ];
 
 module.exports = {
@@ -130,7 +130,7 @@ module.exports = {
     await message.react("💧");
 
     let reacted = false;
-    const isFishingSuccessful = Math.random() < 0.55;
+    const isFishingSuccessful = Math.random() < 0.5;
 
     setTimeout(async () => {
       if (!isFishingSuccessful) {
@@ -164,6 +164,7 @@ module.exports = {
         if (chosenFish.isBad) {
           userEconomy.pièces -= betAmount;
           await userEconomy.save();
+          activeFishingUsers.delete(userId);
           return message.edit({
             content: `❌ Oh non ! Tu as attrapé **${chosenFish.name}** ${chosenFish.emoji}, tu perds ta mise de **${betAmount} pièces**.`,
             embeds: [],
