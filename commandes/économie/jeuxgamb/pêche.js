@@ -90,7 +90,7 @@ module.exports = {
     await message.react("💧");
 
     let reacted = false;
-    const isFishingSuccessful = Math.random() < 0.8;
+    const isFishingSuccessful = Math.random() < 0.7;
 
     setTimeout(async () => {
       if (!isFishingSuccessful) {

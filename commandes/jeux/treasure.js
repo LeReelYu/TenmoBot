@@ -61,7 +61,7 @@ module.exports = {
       );
     }
 
-    user.pièces -= mise;
+    user.pièces -= mise; // La mise est retirée au début.
     await user.save();
 
     const mapSize = 4;
@@ -187,15 +187,18 @@ module.exports = {
         x >= mapSize ||
         y >= mapSize
       ) {
+        user.pièces -= mise;
+        await user.save();
+
         return interaction.followUp(
-          "❌ Coordonnées invalides ! Le jeu s'arrête. Tu as perdu !"
+          "❌ Coordonnées invalides ou temps écoulé ! Tu as perdu ta mise."
         );
       }
 
       let resultEmbed = new EmbedBuilder().setColor("Orange");
 
       if (x === treasureTarget.x && y === treasureTarget.y) {
-        const gain = mise * Math.floor(Math.random() * 3 + 3);
+        const multiplicateur = Math.random() * (2.5 - 1.5) + 1.5;
         user.pièces += gain;
         await user.save();
 
@@ -204,7 +207,7 @@ module.exports = {
           .setDescription(
             `Tu as trouvé un trésor à (${x + 1}, ${
               y + 1
-            }) ! 💰\nTu gagnes **${gain} pièces**.`
+            }) ! 💰\nTu gagnes **${Math.floor(gain)} pièces**.`
           );
       } else {
         resultEmbed
@@ -218,7 +221,10 @@ module.exports = {
 
       await interaction.followUp({ embeds: [resultEmbed] });
     } catch (err) {
-      return interaction.followUp("⏳ Temps écoulé, tu as perdu !");
+      user.pièces -= mise;
+      await user.save();
+
+      return interaction.followUp("⏳ Temps écoulé, tu as perdu ta mise !");
     }
   },
 };
