@@ -153,7 +153,7 @@ module.exports = {
     const promptEmbed = new EmbedBuilder()
       .setTitle("📍 Choisis tes coordonnées")
       .setDescription(
-        "Quel emplacement veux-tu explorer ? (Format : x,y, où x et y sont des entiers entre 1 et 4)"
+        "Quel emplacement veux-tu explorer ? (Format : x,y, où x et y sont des entiers entre 1 et 4 / ex : 1,3)"
       )
       .setColor("Yellow");
 
