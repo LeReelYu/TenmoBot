@@ -65,52 +65,14 @@ module.exports = {
     await user.save();
 
     const mapSize = 4;
-    const treasuresCount = 2;
-    const trapsCount = 2;
-    const map = Array(mapSize)
-      .fill(null)
-      .map(() => Array(mapSize).fill(" "));
 
-    // 🎯 Trésor fixe à position aléatoire
-    let staticTreasure;
-    do {
-      const x = Math.floor(Math.random() * mapSize);
-      const y = Math.floor(Math.random() * mapSize);
-      staticTreasure = { x, y };
-    } while (map[staticTreasure.x][staticTreasure.y] !== " ");
-    map[staticTreasure.x][staticTreasure.y] = "T";
-    let treasures = [staticTreasure];
-
-    for (let i = 1; i < treasuresCount; i++) {
-      let x, y;
-      do {
-        x = Math.floor(Math.random() * mapSize);
-        y = Math.floor(Math.random() * mapSize);
-      } while (map[x][y] !== " ");
-      map[x][y] = "T";
-      treasures.push({ x, y });
-    }
-
-    let traps = [];
-    for (let i = 0; i < trapsCount; i++) {
-      let x, y;
-      do {
-        x = Math.floor(Math.random() * mapSize);
-        y = Math.floor(Math.random() * mapSize);
-      } while (map[x][y] !== " ");
-      map[x][y] = "P";
-      traps.push({ x, y });
-    }
-
-    const generateGrid = (treasures, traps, mapSize, lockedTreasure) => {
+    const generateGrid = (displayedGems, mapSize) => {
       let grid = "";
       for (let i = 0; i < mapSize; i++) {
         let row = "";
         for (let j = 0; j < mapSize; j++) {
-          if (lockedTreasure.some((t) => t.x === i && t.y === j)) {
+          if (displayedGems.some((t) => t.x === i && t.y === j)) {
             row += "[💎] ";
-          } else if (traps.some((t) => t.x === i && t.y === j)) {
-            row += "[💥] ";
           } else {
             row += "[🏜️] ";
           }
@@ -120,50 +82,75 @@ module.exports = {
       return grid;
     };
 
-    let mapEmbed = new EmbedBuilder()
+    // Position secrète du trésor
+    let treasureTarget;
+    const map = Array(mapSize)
+      .fill(null)
+      .map(() => Array(mapSize).fill(" "));
+
+    do {
+      treasureTarget = {
+        x: Math.floor(Math.random() * mapSize),
+        y: Math.floor(Math.random() * mapSize),
+      };
+    } while (map[treasureTarget.x][treasureTarget.y] !== " ");
+
+    // Choisir 2 moments où le joyau passe sur la bonne case
+    const realTreasureMoves = [];
+    while (realTreasureMoves.length < 2) {
+      const rnd = Math.floor(Math.random() * 4);
+      if (!realTreasureMoves.includes(rnd)) realTreasureMoves.push(rnd);
+    }
+
+    // Initialiser 4 joyaux
+    let gems = [];
+    while (gems.length < 4) {
+      const x = Math.floor(Math.random() * mapSize);
+      const y = Math.floor(Math.random() * mapSize);
+      if (!gems.some((g) => g.x === x && g.y === y)) {
+        gems.push({ x, y });
+      }
+    }
+
+    let startEmbed = new EmbedBuilder()
       .setTitle("🌍 Carte du Désert")
       .setColor("Orange")
-      .setDescription("Explore la carte et trouve les trésors !")
+      .setDescription("Voici les mirages qui brillent sous le soleil...")
       .addFields({
-        name: "Grille du Désert",
-        value: generateGrid(treasures, traps, mapSize, treasures),
+        name: "Grille initiale",
+        value: generateGrid(gems, mapSize),
         inline: false,
       });
 
-    await interaction.reply({ embeds: [mapEmbed] });
+    await interaction.reply({ embeds: [startEmbed] });
 
-    // 🌪️ Mouvements du désert avec réapparition du trésor fixe
     for (let t = 0; t < 4; t++) {
       await new Promise((resolve) => setTimeout(resolve, 5000));
 
-      if (t === 2 || t === 3) {
-        if (
-          !treasures.some(
-            (tr) => tr.x === staticTreasure.x && tr.y === staticTreasure.y
-          )
-        ) {
-          treasures.push({ x: staticTreasure.x, y: staticTreasure.y });
-        }
+      if (realTreasureMoves.includes(t)) {
+        const realGemIndex = Math.floor(Math.random() * gems.length);
+        gems[realGemIndex] = { ...treasureTarget };
+      } else {
+        gems = gems.map(() => {
+          let x, y;
+          do {
+            x = Math.floor(Math.random() * mapSize);
+            y = Math.floor(Math.random() * mapSize);
+          } while (
+            (x === treasureTarget.x && y === treasureTarget.y) ||
+            gems.some((g) => g.x === x && g.y === y)
+          );
+          return { x, y };
+        });
       }
 
-      traps = traps.map(() => {
-        let newX, newY;
-        do {
-          newX = Math.floor(Math.random() * mapSize);
-          newY = Math.floor(Math.random() * mapSize);
-        } while (treasures.some((t) => t.x === newX && t.y === newY));
-        return { x: newX, y: newY };
-      });
-
       const movingEmbed = new EmbedBuilder()
-        .setTitle("🌪️ Le désert bouge...")
+        .setTitle(`🌪️ Mirage ${t + 1}`)
         .setColor("Orange")
-        .setDescription(
-          "Les mirages changent de place... Trouveras-tu le bon diamant ?"
-        )
+        .setDescription("Les joyaux scintillent à de nouveaux endroits...")
         .addFields({
-          name: "Grille mouvante",
-          value: generateGrid(treasures, traps, mapSize, treasures),
+          name: "Carte mouvante",
+          value: generateGrid(gems, mapSize),
           inline: false,
         });
 
@@ -210,7 +197,7 @@ module.exports = {
 
       let resultEmbed = new EmbedBuilder().setColor("Orange");
 
-      if (treasures.some((t) => t.x === x && t.y === y)) {
+      if (x === treasureTarget.x && y === treasureTarget.y) {
         const gain = mise * Math.floor(Math.random() * 3 + 3);
         user.pièces += gain;
         await user.save();
@@ -221,18 +208,6 @@ module.exports = {
             `Tu as trouvé un trésor à (${x + 1}, ${
               y + 1
             }) ! 💰\nTu gagnes **${gain} pièces**.`
-          );
-      } else if (traps.some((t) => t.x === x && t.y === y)) {
-        const perte = Math.floor(mise * (1.5 + Math.random()));
-        user.pièces -= perte;
-        await user.save();
-
-        resultEmbed
-          .setTitle("💥 Piège déclenché !")
-          .setDescription(
-            `Tu es tombé dans un piège à (${x + 1}, ${
-              y + 1
-            }) ! 😱\nTu perds **${perte} pièces**.`
           );
       } else {
         resultEmbed
