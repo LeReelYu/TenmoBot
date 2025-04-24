@@ -127,19 +127,19 @@ module.exports = {
 
       if (i.customId === "vol_niveau_1") {
         successChance = 0.25;
-        gainMin = 150;
-        gainMax = 950;
-        lossMax = 300;
+        gainMin = 12000;
+        gainMax = 40000;
+        lossMax = 8000;
       } else if (i.customId === "vol_niveau_2") {
         successChance = 0.5;
-        gainMin = 90;
-        gainMax = 440;
-        lossMax = 200;
+        gainMin = 6000;
+        gainMax = 12000;
+        lossMax = 4500;
       } else {
         successChance = 0.65;
-        gainMin = 30;
-        gainMax = 190;
-        lossMax = 100;
+        gainMin = 3500;
+        gainMax = 6000;
+        lossMax = 2500;
       }
 
       await i.update({
