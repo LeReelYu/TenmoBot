@@ -82,7 +82,6 @@ module.exports = {
       return grid;
     };
 
-    // Position secrète du trésor
     let treasureTarget;
     const map = Array(mapSize)
       .fill(null)
@@ -95,14 +94,12 @@ module.exports = {
       };
     } while (map[treasureTarget.x][treasureTarget.y] !== " ");
 
-    // Choisir 2 moments où le joyau passe sur la bonne case
     const realTreasureMoves = [];
     while (realTreasureMoves.length < 2) {
       const rnd = Math.floor(Math.random() * 4);
       if (!realTreasureMoves.includes(rnd)) realTreasureMoves.push(rnd);
     }
 
-    // Initialiser 4 joyaux
     let gems = [];
     while (gems.length < 4) {
       const x = Math.floor(Math.random() * mapSize);
