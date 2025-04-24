@@ -4,10 +4,48 @@ const Economie = require("../../../Sequelize/modèles/argent/économie");
 const activeFishingUsers = new Map();
 
 const fishTiers = [
-  { emoji: "🐠", name: "Poisson commun", multiplier: 1.0, chance: 0.75 },
-  { emoji: "🐡", name: "Poisson rare", multiplier: 2.0, chance: 0.2 },
-  { emoji: "🦈", name: "Requin légendaire", multiplier: 2.5, chance: 0.045 },
-  { emoji: "🐋", name: "Le Léviathan", multiplier: 3.0, chance: 0.005 },
+  {
+    emoji: "🐠",
+    name: "Poisson commun",
+    multiplier: 1.0,
+    chance: 0.7,
+    isBad: false,
+  },
+  {
+    emoji: "🐡",
+    name: "Poisson rare",
+    multiplier: 2.0,
+    chance: 0.2,
+    isBad: false,
+  },
+  {
+    emoji: "🦈",
+    name: "Requin légendaire",
+    multiplier: 2.5,
+    chance: 0.05,
+    isBad: false,
+  },
+  {
+    emoji: "🐋",
+    name: "Le Léviathan",
+    multiplier: 3.0,
+    chance: 0.02,
+    isBad: false,
+  },
+  {
+    emoji: "💀",
+    name: "Poisson mauvais",
+    multiplier: 0,
+    chance: 0.025,
+    isBad: true,
+  }, // Poisson mauvais
+  {
+    emoji: "🦑",
+    name: "Calamar maléfique",
+    multiplier: 0,
+    chance: 0.025,
+    isBad: true,
+  }, // Poisson mauvais
 ];
 
 module.exports = {
@@ -61,6 +99,8 @@ module.exports = {
               ? bottom[Math.floor(Math.random() * bottom.length)]
               : Math.random() < 0.85
               ? water
+              : Math.random() < 0.5
+              ? fishTiers[Math.floor(Math.random() * fishTiers.length)].emoji
               : fishTiers[0].emoji;
         }
         sea += "\n";
@@ -90,7 +130,7 @@ module.exports = {
     await message.react("💧");
 
     let reacted = false;
-    const isFishingSuccessful = Math.random() < 0.7;
+    const isFishingSuccessful = Math.random() < 0.55;
 
     setTimeout(async () => {
       if (!isFishingSuccessful) {
@@ -117,9 +157,18 @@ module.exports = {
         max: 1,
       });
 
-      collector.on("collect", async () => {
+      collector.on("collect", async (reaction) => {
         reacted = true;
         clearInterval(interval);
+
+        if (chosenFish.isBad) {
+          userEconomy.pièces -= betAmount;
+          await userEconomy.save();
+          return message.edit({
+            content: `❌ Oh non ! Tu as attrapé **${chosenFish.name}** ${chosenFish.emoji}, tu perds ta mise de **${betAmount} pièces**.`,
+            embeds: [],
+          });
+        }
 
         const gain = Math.floor(betAmount * chosenFish.multiplier);
         userEconomy.pièces += gain;
@@ -133,15 +182,15 @@ module.exports = {
         activeFishingUsers.delete(userId);
       });
 
-      collector.on("end", async (collected) => {
+      collector.on("end", async () => {
         if (!reacted) {
           clearInterval(interval);
           activeFishingUsers.delete(userId);
-          userEconomy.pièces -= betAmount;
+          userEconomy.pièces += betAmount;
           await userEconomy.save();
 
           await message.edit({
-            content: `Le poisson s'est échappé... 😢 Tu perds **${betAmount} pièces**.`,
+            content: `Tu n'as pas réagi à temps, mais tu récupères ta mise de **${betAmount} pièces**.`,
             embeds: [],
           });
         }
