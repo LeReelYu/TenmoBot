@@ -93,10 +93,8 @@ module.exports = {
 
       await interaction.deferReply();
 
-      // Ajouter une chance de 15% de rentrer bredouille
       const chanceNoAnimal = Math.random();
-      if (chanceNoAnimal <= 0.15) {
-        // 15% de chance de ne rien trouver
+      if (chanceNoAnimal <= 0.1) {
         return interaction.editReply(
           "❌ Tu n'as trouvé aucun animal... Tu es rentré bredouille !"
         );
@@ -105,10 +103,10 @@ module.exports = {
       const getRandomRarity = () => {
         const roll = Math.random();
         const chances = {
-          commun: 0.7,
-          rare: 0.2,
-          légendaire: 0.08,
-          mythique: 0.02,
+          commun: 0.8,
+          rare: 0.14,
+          légendaire: 0.05,
+          mythique: 0.01,
         };
         let total = 0;
         for (const [rarity, chance] of Object.entries(chances)) {
@@ -146,7 +144,25 @@ module.exports = {
         );
       }
 
-      const drawnPet = weightedRandomPet(petsOfRarity);
+      // Filtrer les pets déjà trop capturés
+      const filteredPets = [];
+      for (const pet of petsOfRarity) {
+        const captureCount = await UserPets.count({
+          where: { petId: pet.id },
+        });
+        if (captureCount < pet.max_captures) {
+          filteredPets.push(pet);
+        }
+      }
+
+      if (filteredPets.length === 0) {
+        // Si aucun pet n'est capturable, relancer automatiquement la chasse
+        return interaction.editReply(
+          "❌ Aucune cible disponible pour cette chasse, relance la chasse."
+        );
+      }
+
+      const drawnPet = weightedRandomPet(filteredPets);
       const finalEmoji = emojisByRarity[drawnRarity];
 
       const embed = new EmbedBuilder()
@@ -206,7 +222,6 @@ module.exports = {
         await message.edit({ embeds: [embed] });
       }
     }
-
     // Profil des pets
     if (subcommand === "profil") {
       const userPets = await UserPets.findAll({
