@@ -57,22 +57,22 @@ module.exports = {
       });
     }
 
-    // Vérification si la cible a une protection anti-vol (itemId = 4)
-    const protectionItemId = 4;
+    // Retirer l'objet avec l'ID "8" de l'inventaire de la cible
+    const itemId = 8;
     const targetInventory = await Inventaire.findOne({
-      where: { userId: targetUser.id, itemId: protectionItemId },
+      where: { userId: targetUser.id, itemId: itemId },
     });
 
-    // Si la cible a la protection anti-vol, la retirer mais le vol continue
+    // Si l'objet avec l'ID 8 est trouvé dans l'inventaire de la cible, le retirer
     if (targetInventory && targetInventory.quantity > 0) {
       await Inventaire.decrement(
         { quantity: 1 },
-        { where: { userId: targetUser.id, itemId: protectionItemId } }
+        { where: { userId: targetUser.id, itemId: itemId } }
       );
 
       // Vérifier si la quantité est tombée à 0 et supprimer l'entrée
       const updatedInventory = await Inventaire.findOne({
-        where: { userId: targetUser.id, itemId: protectionItemId },
+        where: { userId: targetUser.id, itemId: itemId },
       });
 
       if (updatedInventory && updatedInventory.quantity <= 0) {
@@ -80,7 +80,7 @@ module.exports = {
       }
     }
 
-    // Suite du code si la protection est retirée ou non présente...
+    // Suite du code pour le vol...
 
     const embed = new EmbedBuilder()
       .setTitle("💰 Tentative de vol 💰")
