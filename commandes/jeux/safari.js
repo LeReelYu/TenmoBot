@@ -328,7 +328,7 @@ module.exports = {
       const rewardByRarity = {
         commun: 200,
         rare: 500,
-        légendaire: 1500,
+        légendaire: 5500,
         mythique: 50000,
       };
 
