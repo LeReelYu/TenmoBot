@@ -1,5 +1,5 @@
 const { Sequelize, DataTypes } = require("sequelize");
-const sequelize = require("../sequelize"); // Assure-toi que ce fichier pointe vers ta base de données existante
+const sequelize = require("../sequelize");
 
 const RouletteGame = sequelize.define("RouletteGame", {
   userId: {
