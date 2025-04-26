@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, PermissionFlagsBits } = require("discord.js");
-const { ListeFilms } = require("../../../Sequelize/modèles/listefilms");
+const Films = require("../../../Sequelize/modèles/Films");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -16,14 +16,15 @@ module.exports = {
   async execute(interaction) {
     const titre = interaction.options.getString("titre");
 
-    const existe = await ListeFilms.findOne({ where: { title: titre } });
+    const existe = await Films.findOne({ where: { title: titre } });
 
     if (existe) {
       return interaction.reply({
         content: `❌ Le film **${titre}** est déjà enregistré.`,
       });
     }
-    await ListeFilms.create({ title: titre });
+
+    await Films.create({ title: titre });
 
     return interaction.reply({
       content: `✅ Le film **${titre}** a bien été ajouté à la base !`,

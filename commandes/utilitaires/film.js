@@ -1,8 +1,7 @@
 const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 const axios = require("axios");
 const config = require("../../config.json");
-const { ListeFilms } = require("../../Sequelize/modèles/listefilms");
-const { NoteFilms } = require("../../Sequelize/modèles/notefilms");
+const Films = require("../../Sequelize/modèles/Films");
 const { Op } = require("sequelize");
 
 module.exports = {
@@ -26,7 +25,6 @@ module.exports = {
             .setName("titre")
             .setDescription("Titre exact du film enregistré")
             .setRequired(true)
-            .setAutocomplete(true)
         )
         .addIntegerOption((opt) =>
           opt
@@ -113,7 +111,7 @@ module.exports = {
       const note = interaction.options.getInteger("note");
       const userId = interaction.user.id;
 
-      const film = await ListeFilms.findOne({
+      const film = await Films.findOne({
         where: { title: { [Op.iLike]: titre } },
       });
 
@@ -140,31 +138,37 @@ module.exports = {
     }
 
     if (sub === "classement") {
-      const films = await ListeFilms.findAll({
+      const films = await Films.findAll({
         include: [{ model: NoteFilms }],
       });
 
       if (!films.length)
-        return interaction.reply("Aucun film noté pour l’instant.");
+        return interaction.reply(
+          "❌ Aucun film enregistré ou noté pour l'instant."
+        );
 
       const filmStats = films
         .map((film) => {
           const notes = film.NoteFilms;
-          if (!notes.length) return null;
+          if (!notes.length)
+            return { titre: film.title, moyenne: "Vide", count: 0 };
 
           const moyenne =
             notes.reduce((sum, note) => sum + note.note, 0) / notes.length;
           return { titre: film.title, moyenne, count: notes.length };
         })
-        .filter(Boolean)
-        .sort((a, b) => b.moyenne - a.moyenne);
+        .sort((a, b) => {
+          if (a.moyenne === "Vide") return 1;
+          if (b.moyenne === "Vide") return -1;
+          return b.moyenne - a.moyenne;
+        });
 
       const classement = filmStats
         .map(
           (film, i) =>
-            `**${i + 1}.** ${film.titre} — ${film.moyenne.toFixed(2)}/5 (${
-              film.count
-            } note${film.count > 1 ? "s" : ""})`
+            `**${i + 1}.** ${film.titre} — ${
+              film.moyenne === "Vide" ? "Vide" : film.moyenne.toFixed(2)
+            }/5 (${film.count} note${film.count > 1 ? "s" : ""})`
         )
         .join("\n");
 
@@ -175,19 +179,5 @@ module.exports = {
 
       return interaction.reply({ embeds: [embed] });
     }
-  },
-
-  async autocomplete(interaction) {
-    const focused = interaction.options.getFocused();
-    const films = await ListeFilms.findAll();
-
-    const filtered = films
-      .filter((film) =>
-        film.title.toLowerCase().includes(focused.toLowerCase())
-      )
-      .slice(0, 25)
-      .map((film) => ({ name: film.title, value: film.title }));
-
-    await interaction.respond(filtered);
   },
 };
