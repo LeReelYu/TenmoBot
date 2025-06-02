@@ -14,10 +14,6 @@ const Pets = sequelize.define("Pets", {
     type: DataTypes.STRING,
     allowNull: true,
   },
-  effect_type: {
-    type: DataTypes.STRING,
-    allowNull: true, // le bonus
-  },
   max_quantity: {
     type: DataTypes.INTEGER,
     defaultValue: 0,

@@ -407,7 +407,6 @@ module.exports = {
         .setTitle(`${emoji} ${pet.name}`)
         .setDescription(
           `**Rareté** : ${pet.rarity}
-          **Pouvoir** : ${pet.effect_type || "Aucun"}
           **Capturé par** : ${totalDresseurs} dresseur${
             totalDresseurs > 1 ? "s" : ""
           }`
