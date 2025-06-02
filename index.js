@@ -68,22 +68,4 @@ for (const file of eventFiles) {
   }
 }
 
-// Ajout de la gestion des messages et de l'enregistrement dans la base de données
-const ALLOWED_CHANNEL_ID = "1332366656428572693"; // Remplace par l'ID du salon voulu
-
-client.on("messageCreate", async (message) => {
-  if (message.author.bot) return; // Ignore les messages des autres bots
-
-  // Vérifie si le message provient du bon salon
-  if (message.channel.id === ALLOWED_CHANNEL_ID) {
-    await saveMessage(
-      message.guild.id, // ID du serveur
-      message.author.username, // Nom de l'auteur
-      message.author.bot ? "assistant" : "user", // Rôle
-      message.content, // Contenu du message
-      message.channel.id // ID du salon
-    );
-  }
-});
-
 client.login(token); // On laisse juste client.login ici, il se déclenche automatiquement
