@@ -12,24 +12,34 @@ module.exports = {
     .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers), // Nécessite la permission de bannir
 
   async execute(interaction) {
-    const channelId = "1332377646725857280"; // Remplace par l'ID du salon où tu veux envoyer l'embed
+    const channelId = "1356468520442921100"; // ID SALON
 
     const embed = new EmbedBuilder()
-      .setAuthor({
-        name: "Teemo'news",
-      })
-      .setTitle("Le Premier Magasin")
+      .setTitle("Tenmo de retour ?? !! ! ??")
       .setDescription(
-        "comme vous le savais, le premier magasin a rejoindre le serveur n'est autre que...\n FootPorn'shop !!!!\net oui on se lance dans la collection panini de pied, payez vos boosters et priez pour avoir la carte ultra rare des pieds de damdam !\nmais pas que !  Il vas y avoir un jeu pour utiliser les carte, faites vos decks et combattez les autres avec votre carte pied de clochard !!!\n\nbientôt disponible !!"
+        "Bonjour ou bonsoir mes champignons, en effet, c'est le retour du royal Tenmo. Discutons-en"
+      )
+      .addFields(
+        {
+          name: "Capitaine  au rapport",
+          value:
+            "J'aime bcp bcp Tenmo et ne souhaite pas qu'il disparaisse. Maintenant que je suis loin de la tempête je profite du calme pour le récupérer mais beaucoup de choses vont changer. \nJe pense arrêter l'idée de saisons pour Tenmo, de prestige etc... Le système d'économie sera là pour s'amuser, je ferai des ajouts etc selon vos goûts et idées mais sans nerf ou buff pour complaire une saison. Donc là par exemple la roulette, le blackjack et les machines à sous (toutes neuves) sont normales, pareil pour la pêche tout est cool soyez riche.",
+          inline: false,
+        },
+        {
+          name: "Le futur du capitaine ?",
+          value:
+            "Même si les projets  énormes sont terminés, c'est-à-dire que j'ai supprimé tout en lien avec les entreprises (trop trop mal de tête ça), les pets restent, même si je vais les rework petit à petit, pareil pour le reste.\nLe nouveau but de Tenmo est d'être léger MAIS amusant. Donc y'aura des commandes comme les films, la roulette... Mais pas de trucs pour vous contraindre sauf le forcekick à un million d'accord.\nConcernant les pets, ce sera juste de la collection pure (ou vendre) sans pouvoirs, juste j'essaierai d'ajouter une quantité énorme pour que vous soyez content de les collecter malgré leur rareté ! \n\nBisou",
+          inline: false,
+        }
       )
       .setImage(
-        "https://cdn.discordapp.com/attachments/969658744692682762/1356347494317035721/le_1er_magasin.png?ex=67ece54a&is=67eb93ca&hm=aeddf0c808c6b8db5383fff00c2c7c658dc38f3085acf8b3354fd6cdb37cec94&"
+        "https://media1.tenor.com/m/tjynp4QoWd8AAAAC/minecraft-mr-bis-tom-nook-dies.gif"
       )
-      .setColor("#00b0f4")
+      .setColor("#0c98cf")
       .setFooter({
-        text: "ratatoing",
-      })
-      .setTimestamp();
+        text: "C'est super tout ça",
+      });
 
     // Récupérer le salon avec l'ID et envoyer l'embed
     const channel = await interaction.client.channels.fetch(channelId);

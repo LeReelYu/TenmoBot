@@ -1,7 +1,7 @@
 const { SlashCommandBuilder, MessageFlags } = require("discord.js");
-const Economie = require("../../Sequelize/modèles/argent/économie");
-const daily = require("../../Sequelize/modèles/argent/cooldowns/daily");
-const Cdvol = require("../../Sequelize/modèles/argent/cooldowns/cdvol");
+const Economie = require("../../../Sequelize/modèles/argent/économie");
+const daily = require("../../../Sequelize/modèles/argent/cooldowns/daily");
+const Cdvol = require("../../../Sequelize/modèles/argent/cooldowns/cdvol");
 
 module.exports = {
   data: new SlashCommandBuilder()

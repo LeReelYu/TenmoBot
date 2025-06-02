@@ -1,6 +1,5 @@
 const { SlashCommandBuilder, PermissionFlagsBits } = require("discord.js");
 const Economie = require("../../../Sequelize/modèles/argent/économie");
-const BubbleProfile = require("../../../Sequelize/modèles/argent/bulle/BubbleProfile");
 const Pets = require("../../../Sequelize/modèles/argent/vente/animaux/pets");
 const UserPets = require("../../../Sequelize/modèles/argent/vente/animaux/userpets");
 
@@ -28,8 +27,7 @@ module.exports = {
         .setRequired(true)
         .addChoices(
           { name: "Champignons", value: "champignons" },
-          { name: "Pièces", value: "pièces" },
-          { name: "Bulles", value: "bulles" }
+          { name: "Pièces", value: "pièces" }
         )
     )
     .addStringOption((option) =>
@@ -54,13 +52,6 @@ module.exports = {
       },
     });
 
-    const [targetBubbleProfile] = await BubbleProfile.findOrCreate({
-      where: { userId: membre.id },
-      defaults: {
-        bubbles: 0,
-      },
-    });
-
     let successMessage = `Tu as donné ${montant} ${monnaie} à ${membre.username}.`;
 
     // Modification de la monnaie
@@ -68,42 +59,38 @@ module.exports = {
       targetUser.champignons += montant;
     } else if (monnaie === "pièces") {
       targetUser.pièces += montant;
-    } else if (monnaie === "bulles") {
-      targetBubbleProfile.bubbles += montant;
-      successMessage = `Tu as donné ${montant} bulles à ${membre.username}.`;
-    }
 
-    await targetUser.save();
-    await targetBubbleProfile.save();
+      await targetUser.save();
 
-    // Gestion des pets
-    if (petName) {
-      const pet = await Pets.findOne({ where: { name: petName } });
+      // Gestion des pets
+      if (petName) {
+        const pet = await Pets.findOne({ where: { name: petName } });
 
-      if (!pet) {
-        return interaction.reply(`🚫 Le pet **${petName}** n'existe pas.`);
-      }
+        if (!pet) {
+          return interaction.reply(`🚫 Le pet **${petName}** n'existe pas.`);
+        }
 
-      const existing = await UserPets.findOne({
-        where: {
-          userId: membre.id,
-          petId: pet.id,
-        },
-      });
-
-      if (existing) {
-        successMessage += `\n⚠️ ${membre.username} possède déjà le pet **${petName}**.`;
-      } else {
-        await UserPets.create({
-          userId: membre.id,
-          petId: pet.id,
-          is_equipped: false,
+        const existing = await UserPets.findOne({
+          where: {
+            userId: membre.id,
+            petId: pet.id,
+          },
         });
 
-        successMessage += `\nLe pet **${petName}** a été donné à ${membre.username}.`;
-      }
-    }
+        if (existing) {
+          successMessage += `\n⚠️ ${membre.username} possède déjà le pet **${petName}**.`;
+        } else {
+          await UserPets.create({
+            userId: membre.id,
+            petId: pet.id,
+            is_equipped: false,
+          });
 
-    return interaction.reply(successMessage);
+          successMessage += `\nLe pet **${petName}** a été donné à ${membre.username}.`;
+        }
+      }
+
+      return interaction.reply(successMessage);
+    }
   },
 };

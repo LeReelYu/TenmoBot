@@ -1,7 +1,7 @@
 const { DateTime } = require("luxon");
 
 module.exports = async function bjorn(client) {
-  const channelId = "1332366656428572693"; // Remplace par l'ID du salon
+  const channelId = "1332366656428572693";
 
   try {
     const channel = await client.channels.fetch(channelId);

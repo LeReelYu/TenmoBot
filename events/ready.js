@@ -4,14 +4,11 @@ const autofeur = require("../autoscript/utilitaire/autofeur");
 const bjorn = require("../autoscript/utilitaire/bjorn");
 const sequelize = require("../Sequelize/sequelize");
 const fotd = require("../autoscript/utilitaire/fotd");
-const tenmoai = require("../iatenmo/tenmoai");
-const tenmohoroscope = require("../iatenmo/horoscope");
 const autochannel = require("../autoscript/utilitaire/autochannel");
 const Economie = require("../Sequelize/modèles/argent/économie");
 const { DateTime } = require("luxon");
 const { automajbourse } = require("../autoscript/bourse/autobourse");
 const scheduleCommit = require("../autoscript/utilitaire/automaj");
-const { updatePassiveBubbles } = require("../autoscript/autobulle/autogain");
 
 module.exports = {
   name: Events.ClientReady,
@@ -22,12 +19,9 @@ module.exports = {
     autofeur(client);
     bjorn(client);
     fotd(client);
-    tenmoai(client);
-    tenmohoroscope(client);
     autochannel(client);
     automajbourse(client);
     scheduleCommit();
-    updatePassiveBubbles();
 
     sequelize.sync().then(() => {
       console.log("📦 Base de données synchronisée !");

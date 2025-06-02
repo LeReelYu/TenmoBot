@@ -25,15 +25,13 @@ module.exports = {
     if (!canUseBlackjack) {
       return interaction.reply({
         content:
-          "❌ La commande est temporairement bloquée. Veuillez attendre 1 seconde avant de réessayer.",
-        ephemeral: true,
+          "❌ La commande est temporairement bloquée. Réessaie dans 1 seconde.",
+        flags: MessageFlags.Ephemeral,
       });
     }
 
     canUseBlackjack = false;
-    setTimeout(() => {
-      canUseBlackjack = true;
-    }, 1000);
+    setTimeout(() => (canUseBlackjack = true), 1000);
 
     const mise = interaction.options.getInteger("mise");
     const userId = interaction.user.id;
@@ -41,13 +39,12 @@ module.exports = {
     const userEco = await Economie.findByPk(userId);
     if (!userEco || userEco.pièces < mise || mise <= 0) {
       return interaction.reply({
-        content:
-          "❌ Tu n'as pas assez de pièces pour faire ce pari, ou tu essaies de miser un montant invalide.",
+        content: "❌ Tu n'as pas assez de pièces ou la mise est invalide.",
       });
     }
 
     const deck = [];
-    const valeurs = [2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10, 11];
+    const valeurs = [2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10, 11]; // 10 = J, Q, K
     const couleurs = ["♠", "♥", "♦", "♣"];
     for (const couleur of couleurs) {
       for (const valeur of valeurs) {
@@ -87,7 +84,10 @@ module.exports = {
           name: "Ta main",
           value: `${displayHand(playerHand)} = **${playerTotal}**`,
         },
-        { name: "Main du croupier", value: `[♦${dealerHand[0].valeur}] [?]` }
+        {
+          name: "Main du croupier",
+          value: `${displayHand([dealerHand[0]])} [❓]`,
+        }
       )
       .setFooter({ text: "Clique sur Tirer ou Rester." });
 
@@ -102,22 +102,19 @@ module.exports = {
         .setStyle(ButtonStyle.Secondary)
     );
 
-    const msg = await interaction.reply({
-      embeds: [embed],
-      components: [row],
-      withResponse: true,
-    });
+    const msg = await interaction.reply({ embeds: [embed], components: [row] });
 
     const collector = interaction.channel.createMessageComponentCollector({
       time: 60000,
     });
 
     collector.on("collect", async (i) => {
-      if (i.user.id !== interaction.user.id)
+      if (i.user.id !== interaction.user.id) {
         return i.reply({
-          content: "Ce n'est pas ton jeu !",
+          content: "❌ Ce n'est pas ton jeu !",
           flags: MessageFlags.Ephemeral,
         });
+      }
 
       if (i.customId === "hit") {
         playerHand.push(drawCard());
@@ -135,7 +132,7 @@ module.exports = {
                   },
                   {
                     name: "Main du croupier",
-                    value: `[♦${dealerHand[0].valeur}] [?]`,
+                    value: `${displayHand([dealerHand[0]])} [❓]`,
                   }
                 )
                 .setColor(0xe74c3c)
@@ -153,7 +150,7 @@ module.exports = {
                 },
                 {
                   name: "Main du croupier",
-                  value: `[♦${dealerHand[0].valeur}] [?]`,
+                  value: `${displayHand([dealerHand[0]])} [❓]`,
                 }
               ),
             ],
@@ -166,57 +163,50 @@ module.exports = {
 
     collector.on("end", async (_, reason) => {
       let result = "";
-      let perteBonus = 0;
+      let color = 0x3498db;
 
-      if (reason === "stand") {
+      if (reason === "bust") {
+        userEco.pièces -= mise;
+        result = `❌ Tu perds **${mise}** pièces !`;
+        color = 0xe74c3c;
+      } else if (reason === "stand") {
         while (dealerTotal < 17) {
           dealerHand.push(drawCard());
           dealerTotal = calcTotal(dealerHand);
         }
 
         if (dealerTotal > 21 || playerTotal > dealerTotal) {
-          const gain = Math.floor(mise * 0.75);
-          result = `✅ Tu gagnes **${gain}** pièces (gain réduit) !`;
+          const gain = mise * 2;
           userEco.pièces += gain;
+          result = `✅ Tu gagnes **${gain}** pièces !`;
+          color = 0x2ecc71;
         } else if (playerTotal < dealerTotal) {
-          perteBonus = Math.floor(mise * (Math.random() * 0.5 + 0.5));
-          result = `❌ Tu perds **${mise + perteBonus}** pièces !`;
-          userEco.pièces -= mise + perteBonus;
+          userEco.pièces -= mise;
+          result = `❌ Tu perds **${mise}** pièces !`;
+          color = 0xe74c3c;
         } else {
-          const perteÉgalité = Math.floor(mise * 0.15);
-          result = `🔁 Égalité, mais la maison gagne... Tu perds **${perteÉgalité}** pièces.`;
-          userEco.pièces -= perteÉgalité;
+          result = `🤝 Égalité ! Ta mise de **${mise}** pièces t'est rendue.`;
         }
-
-        await userEco.save();
-
-        const finalEmbed = new EmbedBuilder()
-          .setColor(0x3498db)
-          .setTitle("🃏 Fin de la partie")
-          .addFields(
-            {
-              name: "Ta main",
-              value: `${displayHand(playerHand)} = **${playerTotal}**`,
-            },
-            {
-              name: "Main du croupier",
-              value: `${displayHand(dealerHand)} = **${dealerTotal}**`,
-            },
-            { name: "Résultat", value: result }
-          );
-
-        await interaction.editReply({ embeds: [finalEmbed], components: [] });
-      } else if (reason === "bust") {
-        let perteTotale = mise;
-        if (Math.random() < 0.75) {
-          perteBonus = Math.floor(mise * (Math.random() * 0.75 + 0.25));
-          perteTotale += perteBonus;
-        }
-        userEco.pièces -= perteTotale;
-        await userEco.save();
-      } else {
-        await interaction.editReply({ components: [] });
       }
+
+      await userEco.save();
+
+      const finalEmbed = new EmbedBuilder()
+        .setColor(color)
+        .setTitle("🃏 Fin de la partie")
+        .addFields(
+          {
+            name: "Ta main",
+            value: `${displayHand(playerHand)} = **${playerTotal}**`,
+          },
+          {
+            name: "Main du croupier",
+            value: `${displayHand(dealerHand)} = **${dealerTotal}**`,
+          },
+          { name: "Résultat", value: result }
+        );
+
+      await interaction.editReply({ embeds: [finalEmbed], components: [] });
     });
   },
 };

@@ -47,8 +47,8 @@ module.exports = {
     const userEco = await Economie.findByPk(userId);
     if (!userEco || userEco.pièces < mise || mise <= 0) {
       return interaction.reply({
-        content:
-          "❌ Tu n'as pas assez de pièces pour faire ce pari, ou tu essaies de miser un montant invalide.",
+        content: "❌ Tu n'as pas assez de pièces ou la mise est invalide.",
+        ephemeral: true,
       });
     }
 
@@ -57,12 +57,28 @@ module.exports = {
       (numeroChoisi === null || numeroChoisi < 0 || numeroChoisi > 36)
     ) {
       return interaction.reply({
-        content:
-          "❌ Tu dois choisir un **numéro entre 0 et 36** dans valeur pour ce type de pari.",
+        content: "❌ Tu dois choisir un **numéro entre 0 et 36** pour ce pari.",
+        ephemeral: true,
       });
     }
 
-    const tirage = Math.floor(Math.random() * 37); // 0 à 36
+    // Embed initial de suspense
+    const suspenseEmbed = new EmbedBuilder()
+      .setColor("Orange")
+      .setTitle("🎰 Roulette en cours...")
+      .setDescription("La bille tourne... 🎲 Roulements en cours...")
+      .setImage("https://media.tenor.com/WXWv7tcyDw8AAAAC/roulette.gif")
+      .setFooter({
+        text: `Pari de ${mise} pièces - ${interaction.user.username}`,
+      });
+
+    await interaction.reply({ embeds: [suspenseEmbed] });
+
+    // Délai de suspense (3 secondes)
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+
+    // Tirage du numéro
+    const tirage = Math.floor(Math.random() * 37);
     const couleur = ROUGE.includes(tirage)
       ? "rouge"
       : NOIR.includes(tirage)
@@ -79,20 +95,20 @@ module.exports = {
         if (tirage === numeroChoisi) {
           gain = mise * 25;
           aGagné = true;
-          details = `Tu as parié sur **${numeroChoisi}**, et le tirage était **${tirage}**. 🎯`;
+          details = `Tu as parié sur **${numeroChoisi}**, tirage : **${tirage}**. 🎯`;
         } else {
-          details = `Tu as parié sur **${numeroChoisi}**, mais le tirage était **${tirage}**.`;
+          details = `Tu as parié sur **${numeroChoisi}**, tirage : **${tirage}**.`;
         }
         break;
 
       case "rouge":
       case "noir":
         if (couleur === typePari) {
-          gain = mise * 1.5;
+          gain = Math.floor(mise * 1.5);
           aGagné = true;
-          details = `Tu as parié sur **${typePari}**, et le tirage était **${tirage} (${couleur})**. 🔴⚫`;
+          details = `Tu as parié sur **${typePari}**, tirage : **${tirage} (${couleur})**. 🔴⚫`;
         } else {
-          details = `Tu as parié sur **${typePari}**, mais le tirage était **${tirage} (${couleur})**.`;
+          details = `Tu as parié sur **${typePari}**, tirage : **${tirage} (${couleur})**.`;
         }
         break;
 
@@ -102,55 +118,41 @@ module.exports = {
           (typePari === "pair" && estPair) ||
           (typePari === "impair" && !estPair && tirage !== 0)
         ) {
-          gain = mise * 1.1;
+          gain = Math.floor(mise * 1.1);
           aGagné = true;
-          details = `Tu as parié sur **${typePari}**, et le tirage était **${tirage}**. ✔️`;
+          details = `Tu as parié sur **${typePari}**, tirage : **${tirage}**. ✔️`;
         } else {
-          details = `Tu as parié sur **${typePari}**, mais le tirage était **${tirage}**.`;
+          details = `Tu as parié sur **${typePari}**, tirage : **${tirage}**.`;
         }
         break;
     }
 
+    // Mise à jour de l'économie
     if (aGagné) {
       userEco.pièces += gain;
     } else {
-      let perteTotale = mise;
-      let extraDetails = "";
-
-      if (Math.random() < 0.1) {
-        perteTotale = mise * 3;
-        extraDetails = `\n💀 CATASTROPHE ! Tu as fait un **BUST** et perds **3x ta mise** !`;
-      } else {
-        const extraPerte = Math.floor(mise * (Math.random() * 0.75 + 0.25));
-        perteTotale += extraPerte;
-        extraDetails = `\n😬 Malchance ! Tu perds **${extraPerte} pièces** en plus...`;
-      }
-
-      userEco.pièces -= perteTotale;
-      gain = -perteTotale;
-      details += extraDetails;
+      userEco.pièces -= mise;
+      gain = -mise;
     }
 
     await userEco.save();
 
-    const embed = new EmbedBuilder()
-      .setColor("Yellow")
+    // Embed final de résultat
+    const resultEmbed = new EmbedBuilder()
+      .setColor(aGagné ? "Green" : "Red")
       .setTitle("🎰 Résultat de la Roulette")
       .setDescription(
         `${details}\n\n${
           aGagné
-            ? `🟡 Tu gagnes **${gain} pièces** !`
+            ? `🎉 Tu gagnes **${gain} pièces** !`
             : `😢 Tu perds **${Math.abs(gain)} pièces**.`
         }`
-      )
-      .setImage(
-        "https://dotgg.gg/wp-content/uploads/sites/16/2024/04/ezgif.com-crop-4-1.gif"
       )
       .setFooter({
         text: `Pari de ${mise} pièces - ${interaction.user.username}`,
       })
       .setTimestamp();
 
-    await interaction.reply({ embeds: [embed] });
+    await interaction.editReply({ embeds: [resultEmbed] });
   },
 };

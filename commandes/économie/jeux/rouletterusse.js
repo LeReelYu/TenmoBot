@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, PermissionFlagsBits } = require("discord.js");
-const RouletteGame = require("../../Sequelize/modèles/russe"); // Importation du modèle
+const RouletteGame = require("../../../Sequelize/modèles/russe"); // Importation du modèle
 
 module.exports = {
   data: new SlashCommandBuilder()

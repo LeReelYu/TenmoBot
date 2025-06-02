@@ -4,11 +4,11 @@ const {
   ActionRowBuilder,
   StringSelectMenuBuilder,
 } = require("discord.js");
-const Inventaire = require("../../Sequelize/modèles/argent/vente/inventaire");
-const Pets = require("../../Sequelize/modèles/argent/vente/animaux/pets");
+const Inventaire = require("../../../Sequelize/modèles/argent/vente/inventaire");
+const Pets = require("../../../Sequelize/modèles/argent/vente/animaux/pets");
 const { Op } = require("sequelize");
-const UserPets = require("../../Sequelize/modèles/argent/vente/animaux/userpets");
-const Economie = require("../../Sequelize/modèles/argent/économie");
+const UserPets = require("../../../Sequelize/modèles/argent/vente/animaux/userpets");
+const Economie = require("../../../Sequelize/modèles/argent/économie");
 const { fn, col, where: sequelizeWhere } = require("sequelize");
 
 module.exports = {
@@ -103,11 +103,12 @@ module.exports = {
       const getRandomRarity = () => {
         const roll = Math.random();
         const chances = {
-          commun: 0.8,
-          rare: 0.14,
-          légendaire: 0.05,
-          mythique: 0.01,
+          commun: 0.9, // Très haute probabilité pour les objets communs
+          rare: 0.08, // Probabilité des objets rares très faible
+          légendaire: 0.015, // Probabilité des objets légendaires extrêmement faible
+          mythique: 0.005, // Probabilité des objets mythiques ultra rare
         };
+
         let total = 0;
         for (const [rarity, chance] of Object.entries(chances)) {
           total += chance;
@@ -326,10 +327,10 @@ module.exports = {
 
       // Définir le nombre de pièces par rareté
       const rewardByRarity = {
-        commun: 200,
-        rare: 500,
-        légendaire: 5500,
-        mythique: 50000,
+        commun: 500,
+        rare: 1000,
+        légendaire: 6500,
+        mythique: 65000,
       };
 
       // Récupérer le nombre de pièces en fonction de la rareté

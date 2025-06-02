@@ -18,7 +18,7 @@ module.exports = {
 
     if (!userEconomy) {
       return interaction.reply({
-        content: "❌ Tu n'as pas encore de compte économique.",
+        content: "❌ Tu n'as pas encore de compte.",
       });
     }
 

@@ -3,7 +3,7 @@ const {
   PermissionFlagsBits,
   MessageFlags,
 } = require("discord.js");
-const RusseGlobal = require("../../Sequelize/modèles/russeglobal"); // Importation du modèle global
+const RusseGlobal = require("../../../Sequelize/modèles/russeglobal"); // Importation du modèle global
 
 // Variable pour gérer le cooldown global
 let isCooldownActive = false;
