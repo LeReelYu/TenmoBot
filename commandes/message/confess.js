@@ -13,7 +13,7 @@ module.exports = {
     .addStringOption((option) =>
       option
         .setName("message")
-        .setDescription("Exprimez vous")
+        .setDescription("Exprimez-vous")
         .setRequired(true)
         .setMaxLength(1000)
     )
@@ -24,8 +24,8 @@ module.exports = {
         .setRequired(true)
         .addChoices(
           { name: "Blague anonyme", value: "humour" },
-          { name: "Information anonyme sérieuse", value: "sérieux" },
-          { name: "Message anonyme pour vent", value: "vent" }
+          { name: "Secret que tu as besoin de partager", value: "sérieux" },
+          { name: "Réponse anonyme à un sondage", value: "sondage" }
         )
     ),
   async execute(interaction) {
@@ -33,8 +33,16 @@ module.exports = {
 
     const message = interaction.options.getString("message");
     const forme = interaction.options.getString("forme");
-    const channel = interaction.guild.channels.cache.get("1332370621329575996"); // ID du salon anonyme
-    const roleId = "1353997087309561920"; // ID du rôle à mentionner
+    const humourChannel = interaction.guild.channels.cache.get(
+      "1332370621329575996"
+    );
+    const seriousChannel = interaction.guild.channels.cache.get(
+      "1332370621329575996"
+    );
+    const pollChannel = interaction.guild.channels.cache.get(
+      "1332371377411461120"
+    );
+    const roleId = "1353997087309561920";
 
     if (message.length > 1000) {
       const errorEmbed = new EmbedBuilder()
@@ -55,28 +63,23 @@ module.exports = {
     let embedColor;
     let embedTitle;
     let embedDescription;
+    let channelToSend;
 
     if (forme === "humour") {
       embedColor = "#00FF00";
-      embedTitle = "💬 Que ça blague";
+      embedTitle = "💬 Haha ce message est super marrant !";
       embedDescription = `${message}`;
-      channel.send({
-        content: `<@&${roleId}> **Nouveau message anonyme**`,
-      });
+      channelToSend = humourChannel;
     } else if (forme === "sérieux") {
       embedColor = "#FFFF00";
-      embedTitle = "🚨 En sah to sah";
+      embedTitle = "🚨 Ce message m'a fait composer le 17";
       embedDescription = `${message}`;
-      channel.send({
-        content: `<@&${roleId}> **Nouveau message anonyme**`,
-      });
-    } else if (forme === "vent") {
+      channelToSend = seriousChannel;
+    } else if (forme === "sondage") {
       embedColor = "#FF0000";
-      embedTitle = "💬 J'ai besoin d'en parler";
+      embedTitle = "💬 Le sondage était excellent je suis d'accord";
       embedDescription = `${message}`;
-      channel.send({
-        content: `<@&${roleId}> **Nouveau message anonyme**`,
-      });
+      channelToSend = pollChannel;
     }
 
     const embed = new EmbedBuilder()
@@ -90,16 +93,19 @@ module.exports = {
       })
       .setTimestamp();
 
-    channel.send({ embeds: [embed] });
+    if (forme !== "sondage") {
+      channelToSend.send({
+        content: `<@&${roleId}> **Nouveau message anonyme**`,
+      });
+    }
+    channelToSend.send({ embeds: [embed] });
 
     const successEmbed = new EmbedBuilder()
       .setColor("#00FF00")
       .setTitle("Votre message a été envoyé")
-      .setDescription("Ton message a été envoyé de manière anonyme 💚")
-      .setFooter({
-        text: `Demandé par ${interaction.user.username}`,
-        iconURL: interaction.user.displayAvatarURL(),
-      })
+      .setDescription(
+        "Ton message a été envoyé de manière anonyme, au rapport !💚"
+      )
       .setTimestamp();
 
     await interaction.editReply({ embeds: [successEmbed] });
