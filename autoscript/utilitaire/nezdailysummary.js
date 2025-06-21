@@ -4,7 +4,7 @@ const cron = require("node-cron");
 const NezStats = require("../../Sequelize/modèles/nezcount");
 
 module.exports = function nezDailySummary(client) {
-  const channelId = "1352351466328948786";
+  const channelId = "1332366656428572693";
 
   cron.schedule(
     "59 23 * * *",
