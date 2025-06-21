@@ -10,6 +10,8 @@ const { DateTime } = require("luxon");
 const { automajbourse } = require("../autoscript/bourse/autobourse");
 const scheduleCommit = require("../autoscript/utilitaire/automaj");
 const boomHandler = require("../autoscript/utilitaire/boom");
+const nezlistener = require("../autoscript/utilitaire/nezlistener");
+const nezDailySummary = require("../autoscript/utilitaire/nezdailysummary");
 
 module.exports = {
   name: Events.ClientReady,
@@ -24,6 +26,8 @@ module.exports = {
     automajbourse(client);
     boomHandler(client);
     scheduleCommit();
+    nezlistener(client);
+    nezDailySummary(client);
 
     sequelize.sync().then(() => {
       console.log("📦 Base de données synchronisée !");
