@@ -1,17 +1,15 @@
 const { REST, Routes } = require("discord.js");
 const { clientId, guildId, token } = require("./config.json");
 
-const commandId = "1365443770622939217"; // Remplace par l'ID de la commande à supprimer
+const commandId = "1351981811651317782";
 const rest = new REST().setToken(token);
 
-// Supprime une commande spécifique avec des vérifications
 (async () => {
   try {
     console.log(
       `Tentative de suppression de la commande avec l'ID ${commandId}`
     );
 
-    // Vérification de la commande globale
     try {
       await rest.delete(Routes.applicationCommand(clientId, commandId));
       console.log(`Commande globale avec l'ID ${commandId} supprimée.`);
@@ -23,7 +21,6 @@ const rest = new REST().setToken(token);
       }
     }
 
-    // Vérification de la commande spécifique à la guilde
     try {
       await rest.delete(
         Routes.applicationGuildCommand(clientId, guildId, commandId)
@@ -43,7 +40,6 @@ const rest = new REST().setToken(token);
 
     console.log("Commande supprimée avec succès !");
   } catch (error) {
-    // Récupère les erreurs
     console.error("Erreur lors de la suppression de la commande :", error);
   }
 })();
