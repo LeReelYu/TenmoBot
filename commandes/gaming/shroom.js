@@ -16,8 +16,9 @@ module.exports = {
     const usage = await ShroomUsage.findOne({ where: { userId } });
     const now = new Date();
 
-    if (usage && now - usage.lastUsedAt < 24 * 60 * 60 * 1000) {
-      const cooldown = 24 * 60 * 60 * 1000;
+    const cooldown = 8 * 60 * 60 * 1000;
+
+    if (usage && now - usage.lastUsedAt < cooldown) {
       const timeLeft = cooldown - (now - usage.lastUsedAt);
 
       const hours = Math.floor(timeLeft / (1000 * 60 * 60));

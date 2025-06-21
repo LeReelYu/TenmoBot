@@ -12,10 +12,6 @@ const Scout = sequelize.define("Scout", {
     allowNull: false,
     defaultValue: 0,
   },
-  isBannedUntilReset: {
-    type: DataTypes.BOOLEAN,
-    defaultValue: false,
-  },
 });
 
 module.exports = Scout;
