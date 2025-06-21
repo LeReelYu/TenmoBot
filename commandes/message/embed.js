@@ -9,39 +9,44 @@ module.exports = {
   data: new SlashCommandBuilder()
     .setName("embed")
     .setDescription("Envoie un embed prédéfini dans un salon spécifique.")
-    .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers), // Nécessite la permission de bannir
+    .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers),
 
   async execute(interaction) {
-    const channelId = "1356468520442921100"; // ID SALON
+    const channelId = "1356468520442921100";
 
     const embed = new EmbedBuilder()
-      .setTitle("Tenmo de retour ?? !! ! ??")
+      .setTitle("TenmoUpdate")
       .setDescription(
-        "Bonjour ou bonsoir mes champignons, en effet, c'est le retour du royal Tenmo. Discutons-en"
+        "Coucou mes champignongues, tenmo fait peau neuve aujourd'hui"
       )
       .addFields(
         {
-          name: "Capitaine  au rapport",
+          name: "Ajout des champignons",
           value:
-            "J'aime bcp bcp Tenmo et ne souhaite pas qu'il disparaisse. Maintenant que je suis loin de la tempête je profite du calme pour le récupérer mais beaucoup de choses vont changer. \nJe pense arrêter l'idée de saisons pour Tenmo, de prestige etc... Le système d'économie sera là pour s'amuser, je ferai des ajouts etc selon vos goûts et idées mais sans nerf ou buff pour complaire une saison. Donc là par exemple la roulette, le blackjack et les machines à sous (toutes neuves) sont normales, pareil pour la pêche tout est cool soyez riche.",
+            "Vous pouvez à présent tous placer des champignons sur le serveur à l'aide de la commande **/shroom** (une fois par 24h) piégeant ainsi le salon ! \nSi une personne parle sur un salon piégé le champignon **explose** ! Supprimant son message et accordant de l'expérience au poseur\nChaque semaine, **le meilleur scout est ainsi élu** et le compteur est remis à zéro\nVous pouvez cependant vous **défendre** avec la commande **/déminage** vous accordant aussi de l'XP. Mais attention ! Si vous déminez un salon vide, vous ne pourrez plus poser de champignons pour **la semaine**",
           inline: false,
         },
         {
-          name: "Le futur du capitaine ?",
+          name: "L'arrivée des notes",
           value:
-            "Même si les projets  énormes sont terminés, c'est-à-dire que j'ai supprimé tout en lien avec les entreprises (trop trop mal de tête ça), les pets restent, même si je vais les rework petit à petit, pareil pour le reste.\nLe nouveau but de Tenmo est d'être léger MAIS amusant. Donc y'aura des commandes comme les films, la roulette... Mais pas de trucs pour vous contraindre sauf le forcekick à un million d'accord.\nConcernant les pets, ce sera juste de la collection pure (ou vendre) sans pouvoirs, juste j'essaierai d'ajouter une quantité énorme pour que vous soyez content de les collecter malgré leur rareté ! \n\nBisou",
+            "Une commande **/note** vous permet de créer, modifier, lire, lister ou supprimer des notes personnalisées ne pouvant être lues que par vous si jamais vous avez envie de stocker des idées etc... Cela vous sert ainsi de **pense-bête**",
+          inline: false,
+        },
+        {
+          name: "Le rework des confessions",
+          value:
+            "La commande **/confess** change un peu. A présent, vous pouvez choisir soit de faire une blague, soit de vent/sérieux, soit de répondre à un sondage de façon anonyme",
+          inline: false,
+        },
+        {
+          name: "L'ajout de la boîte à rêve V2",
+          value:
+            "Avec la commande **/dream** vous pouvez partager vos rêves **et** cauchemar en étant anonyme **ou non**",
           inline: false,
         }
       )
-      .setImage(
-        "https://media1.tenor.com/m/tjynp4QoWd8AAAAC/minecraft-mr-bis-tom-nook-dies.gif"
-      )
-      .setColor("#0c98cf")
-      .setFooter({
-        text: "C'est super tout ça",
-      });
+      .setColor("#62f500");
 
-    // Récupérer le salon avec l'ID et envoyer l'embed
     const channel = await interaction.client.channels.fetch(channelId);
 
     if (channel) {
