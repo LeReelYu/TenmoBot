@@ -9,6 +9,7 @@ const Economie = require("../Sequelize/modèles/argent/économie");
 const { DateTime } = require("luxon");
 const { automajbourse } = require("../autoscript/bourse/autobourse");
 const scheduleCommit = require("../autoscript/utilitaire/automaj");
+const boomHandler = require("../autoscript/utilitaire/boom");
 
 module.exports = {
   name: Events.ClientReady,
@@ -21,6 +22,7 @@ module.exports = {
     fotd(client);
     autochannel(client);
     automajbourse(client);
+    boomHandler(client);
     scheduleCommit();
 
     sequelize.sync().then(() => {
