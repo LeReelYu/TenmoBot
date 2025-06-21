@@ -1,4 +1,8 @@
-const { SlashCommandBuilder, MessageFlags } = require("discord.js");
+const {
+  SlashCommandBuilder,
+  MessageFlags,
+  EmbedBuilder,
+} = require("discord.js");
 const Shroom = require("../../Sequelize/modèles/champignongue/Shroom");
 const ShroomUsage = require("../../Sequelize/modèles/champignongue/Shroomusage");
 
@@ -13,14 +17,13 @@ module.exports = {
     const userId = interaction.user.id;
     const channelId = interaction.channel.id;
 
-    const usage = await ShroomUsage.findOne({ where: { userId } });
     const now = new Date();
-
     const cooldown = 8 * 60 * 60 * 1000;
+
+    const usage = await ShroomUsage.findOne({ where: { userId } });
 
     if (usage && now - usage.lastUsedAt < cooldown) {
       const timeLeft = cooldown - (now - usage.lastUsedAt);
-
       const hours = Math.floor(timeLeft / (1000 * 60 * 60));
       const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
       const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
@@ -32,20 +35,22 @@ module.exports = {
 
     const existing = await Shroom.findOne({ where: { channelId } });
     if (existing) {
-      await ShroomUsage.upsert({ userId, lastUsedAt: now });
-
       return interaction.editReply({
         content:
-          "💥 Ce salon est déjà piégé. Ton champignon a été perdu pour aujourd’hui !",
+          "❌ Ce salon est déjà piégé. Tu ne peux pas y planter un autre champignon.",
       });
     }
 
     await Shroom.create({ userId, channelId, placedAt: now });
     await ShroomUsage.upsert({ userId, lastUsedAt: now });
 
-    return interaction.editReply({
-      content:
-        "🍄 Tu as placé un champignon piégé dans ce salon. Bonne chasse !",
-    });
+    const embed = new EmbedBuilder()
+      .setColor(0x00aa88)
+      .setTitle("🍄 Champignon placé")
+      .setDescription(`Tu as piégé ce salon avec un champignon bien planqué...`)
+      .setFooter({ text: "Mini-jeu : Le meilleur Scout de Bandle 🍄" })
+      .setTimestamp();
+
+    return interaction.editReply({ embeds: [embed] });
   },
 };
