@@ -8,7 +8,6 @@ const TEEMO_GIFS = [
   "https://tenor.com/view/teemo-teemo-harmonica-gif-13828961716057023529",
   "https://tenor.com/view/welcome-teemo-legends-of-runeterra-give-me-a-hug-im-glad-to-see-you-gif-24803058",
   "https://tenor.com/view/tahm-kench-league-of-legends-laugh-3d-mushroom-gif-26083942",
-  "https://rule34.xxx//samples/1218/sample_c40841e5152a2cb6e3021eab4d104126.jpg?12597281",
   "https://tenor.com/view/teemo-gif-19065277",
   "https://tenor.com/view/teemo-teemo-kick-rip-rip-teemo-pentakill-mv-gif-3681809263374489617",
   "https://tenor.com/view/teemo-chibi-teemo-teemo-chibi-dance-teemo-dance-gif-7520434862044215667",
