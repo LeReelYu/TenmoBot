@@ -1,7 +1,7 @@
 const { REST, Routes } = require("discord.js");
 const { clientId, guildId, token } = require("./config.json");
 
-const commandId = "1351981811651317782";
+const commandId = "1385771188323881098";
 const rest = new REST().setToken(token);
 
 (async () => {

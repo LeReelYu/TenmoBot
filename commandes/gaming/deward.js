@@ -8,8 +8,10 @@ const ShroomUsage = require("../../Sequelize/modèles/champignongue/Shroomusage"
 
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName("déminage")
-    .setDescription("Tente de désamorcer un champignon dans ce salon"),
+    .setName("deward")
+    .setDescription(
+      "Utilise ton dewarder pour retirer les potentiels champignons du salon"
+    ),
 
   async execute(interaction) {
     const userId = interaction.user.id;
@@ -17,7 +19,7 @@ module.exports = {
 
     const usage = await ShroomUsage.findOne({ where: { userId } });
     const now = new Date();
-    const cooldown = 8 * 60 * 60 * 1000;
+    const cooldown = 2 * 60 * 60 * 1000;
 
     if (usage && now - usage.lastUsedAt < cooldown) {
       const timeLeft = cooldown - (now - usage.lastUsedAt);
@@ -29,7 +31,7 @@ module.exports = {
         .setColor(0xff9900)
         .setTitle("⏳ Cooldown actif")
         .setDescription(
-          `Tu dois attendre **${hours}h ${minutes}m ${seconds}s** avant de tenter un nouveau désamorçage.`
+          `Tu dois attendre **${hours}h ${minutes}m ${seconds}s** avant de tenter un nouveau dewarding.`
         );
 
       return interaction.reply({
@@ -47,7 +49,7 @@ module.exports = {
         .setColor(0xaa0000)
         .setTitle("❌ Échec du désamorçage")
         .setDescription(
-          "Il n'y avait **aucun champignon** à désamorcer ici. Tu dois patienter 8h avant de réessayer."
+          "Il n'y avait **aucun champignon** à deward ici. Tu dois patienter 2h avant de réessayer."
         );
 
       return interaction.reply({
@@ -62,9 +64,9 @@ module.exports = {
 
     const successEmbed = new EmbedBuilder()
       .setColor(0x00aa55)
-      .setTitle("🧹 Champignon désamorcé !")
+      .setTitle("🧹 Champignon découvert !")
       .setDescription(
-        `**${interaction.user.username}** a désamorcé un champignon piégé et gagné **${xpGain} XP** !`
+        `**${interaction.user.username}** a deward un champignon et gagné **${xpGain} XP** !`
       );
 
     return interaction.reply({ embeds: [successEmbed] });
