@@ -18,7 +18,7 @@ module.exports = {
     const channelId = interaction.channel.id;
 
     const now = new Date();
-    const cooldown = 8 * 60 * 60 * 1000;
+    const cooldown = 2 * 60 * 60 * 1000;
 
     const usage = await ShroomUsage.findOne({ where: { userId } });
 
@@ -37,7 +37,7 @@ module.exports = {
     if (existing) {
       return interaction.editReply({
         content:
-          "❌ Ce salon est déjà piégé. Tu ne peux pas y planter un autre champignon.",
+          "❌ Ce salon est déjà piégé. Tu perds ton champignon actuel et ne pourra réessayer que dans 2 heures",
       });
     }
 
