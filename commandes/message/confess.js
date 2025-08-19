@@ -93,7 +93,7 @@ module.exports = {
       })
       .setTimestamp();
 
-    if (forme !== "sondage") {
+    if (forme === "sérieux") {
       channelToSend.send({
         content: `<@&${roleId}> **Nouveau message anonyme**`,
       });
