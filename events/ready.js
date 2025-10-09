@@ -1,7 +1,6 @@
 const { Events, ActivityType } = require("discord.js");
 const config = require("../config.json");
 const autofeur = require("../autoscript/utilitaire/autofeur");
-const bjorn = require("../autoscript/utilitaire/bjorn");
 const sequelize = require("../Sequelize/sequelize");
 const fotd = require("../autoscript/utilitaire/fotd");
 const autochannel = require("../autoscript/utilitaire/autochannel");
@@ -10,8 +9,6 @@ const { DateTime } = require("luxon");
 const { automajbourse } = require("../autoscript/bourse/autobourse");
 const scheduleCommit = require("../autoscript/utilitaire/automaj");
 const boomHandler = require("../autoscript/utilitaire/boom");
-const nezlistener = require("../autoscript/utilitaire/nezlistener");
-const nezDailySummary = require("../autoscript/utilitaire/nezdailysummary");
 
 module.exports = {
   name: Events.ClientReady,
@@ -20,14 +17,11 @@ module.exports = {
     console.log(`🔥 Capitaine ${client.user.tag} au rapport !`);
 
     autofeur(client);
-    bjorn(client);
     fotd(client);
     autochannel(client);
     automajbourse(client);
     boomHandler(client);
     scheduleCommit();
-    nezlistener(client);
-    nezDailySummary(client);
 
     sequelize.sync().then(() => {
       console.log("📦 Base de données synchronisée !");
