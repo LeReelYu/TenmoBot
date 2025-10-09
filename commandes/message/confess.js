@@ -34,10 +34,10 @@ module.exports = {
     const message = interaction.options.getString("message");
     const forme = interaction.options.getString("forme");
     const humourChannel = interaction.guild.channels.cache.get(
-      "1332370621329575996"
+      "1425913409957924874"
     );
     const seriousChannel = interaction.guild.channels.cache.get(
-      "1332370621329575996"
+      "1425913409957924874"
     );
     const pollChannel = interaction.guild.channels.cache.get(
       "1332371377411461120"
