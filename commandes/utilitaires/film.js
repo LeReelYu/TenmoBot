@@ -44,7 +44,7 @@ module.exports = {
     const sub = interaction.options.getSubcommand();
 
     if (sub === "voter") {
-      const nomFilm = interaction.options.getString("nom").trim();
+      const nomFilm = interaction.options.getString("nom").trim().toLowerCase();
       const note = interaction.options.getInteger("note");
       const userId = interaction.user.id;
 
@@ -52,9 +52,10 @@ module.exports = {
         return interaction.reply("❌ La note doit être entre 1 et 5.");
       }
 
-      const filmData = await film.findOne({
-        where: { nom: { [Op.like]: nomFilm } },
-      });
+      const films = await film.findAll();
+      const filmData = films.find(
+        (f) => f.nom.toLowerCase() === nomFilm.toLowerCase()
+      );
 
       if (!filmData) {
         return interaction.reply(
@@ -74,10 +75,11 @@ module.exports = {
     }
 
     if (sub === "note") {
-      const nomFilm = interaction.options.getString("nom").trim();
-      const filmData = await film.findOne({
-        where: { nom: { [Op.like]: nomFilm } },
-      });
+      const nomFilm = interaction.options.getString("nom").trim().toLowerCase();
+      const films = await film.findAll();
+      const filmData = films.find(
+        (f) => f.nom.toLowerCase() === nomFilm.toLowerCase()
+      );
 
       if (!filmData) {
         return interaction.reply(
@@ -91,7 +93,8 @@ module.exports = {
         return interaction.reply("⚠️ Aucun vote pour ce film pour le moment.");
       }
 
-      const moyenne = votes.reduce((sum, v) => sum + v.note, 0) / votes.length;
+      const moyenne =
+        votes.reduce((sum, vote) => sum + vote.note, 0) / votes.length;
       const étoiles = "⭐".repeat(Math.round(moyenne));
 
       const embed = new EmbedBuilder()
@@ -123,7 +126,7 @@ module.exports = {
         const start = (pageNum - 1) * filmsParPage;
         const current = films.slice(start, start + filmsParPage);
         const desc = current
-          .map((f, i) => `🎬 **${f.nom}** — Vu le ${f.date_visionnage}`)
+          .map((f) => `🎬 **${f.nom}** — Vu le ${f.date_visionnage}`)
           .join("\n");
 
         return new EmbedBuilder()
@@ -149,7 +152,7 @@ module.exports = {
       const message = await interaction.reply({
         embeds: [getPageEmbed(page)],
         components: [row],
-        withResponse: true,
+        fetchReply: true,
       });
 
       const collector = message.createMessageComponentCollector({
