@@ -149,7 +149,7 @@ module.exports = {
       const message = await interaction.reply({
         embeds: [getPageEmbed(page)],
         components: [row],
-        fetchReply: true,
+        withResponse: true,
       });
 
       const collector = message.createMessageComponentCollector({
