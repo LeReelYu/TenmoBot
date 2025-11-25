@@ -32,12 +32,12 @@ module.exports = {
     }
 
     const [_, day, month, year] = match;
-    const isoDate = `${year}-${month}-${day}`; // pour compatibilité SQL
+    const isoDate = `${year}-${month}-${day}`;
 
     try {
       const [filmEntry, created] = await film.findOrCreate({
         where: { nom },
-        defaults: { date_visionnage: dateInput }, // on garde JJ/MM/AAAA en base
+        defaults: { date_visionnage: dateInput },
       });
 
       if (!created) {

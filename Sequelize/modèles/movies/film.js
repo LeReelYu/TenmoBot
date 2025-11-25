@@ -9,6 +9,7 @@ const film = sequelize.define("film", {
   date_visionnage: {
     type: DataTypes.STRING,
     allowNull: false,
+    unique: true,
   },
 });
 

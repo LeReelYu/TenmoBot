@@ -44,7 +44,7 @@ module.exports = {
     const sub = interaction.options.getSubcommand();
 
     if (sub === "voter") {
-      const nomFilm = interaction.options.getString("nom").trim().toLowerCase();
+      const nomFilm = interaction.options.getString("nom").trim();
       const note = interaction.options.getInteger("note");
       const userId = interaction.user.id;
 
@@ -53,9 +53,7 @@ module.exports = {
       }
 
       const films = await film.findAll();
-      const filmData = films.find(
-        (f) => f.nom.toLowerCase() === nomFilm.toLowerCase()
-      );
+      const filmData = films.find((f) => f.nom === nomFilm);
 
       if (!filmData) {
         return interaction.reply(
@@ -75,11 +73,9 @@ module.exports = {
     }
 
     if (sub === "note") {
-      const nomFilm = interaction.options.getString("nom").trim().toLowerCase();
+      const nomFilm = interaction.options.getString("nom").trim();
       const films = await film.findAll();
-      const filmData = films.find(
-        (f) => f.nom.toLowerCase() === nomFilm.toLowerCase()
-      );
+      const filmData = films.find((f) => f.nom === nomFilm);
 
       if (!filmData) {
         return interaction.reply(
